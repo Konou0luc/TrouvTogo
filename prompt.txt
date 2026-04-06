@@ -1,0 +1,976 @@
+# Prompt Trae — TrouvTogo Frontend Next.js (API v1.0 — Specs officielles)
+
+---
+
+## Contexte du projet
+
+Tu vas créer le **frontend web complet** de **TrouvTogo** — une plateforme de signalement et récupération d'objets perdus au **Togo** (Afrique de l'Ouest). Projet réel, production. Interface **professionnelle, moderne, responsive, soignée**.
+
+TrouvTogo permet à tout citoyen togolais de :
+- Signaler un objet **perdu** ou **trouvé**
+- Recevoir des **suggestions de matching automatique** (algorithme de scoring 0–100)
+- **Contacter** la personne concernée via messagerie interne anonymisée
+- Recevoir des **notifications** en temps réel (in-app, SMS, WhatsApp)
+
+**Backend** : API REST — base URL `https://api.trouvtogo.com/v1` (dev : `http://localhost:3000/v1`)
+**Auth** : JWT Bearer token (`Authorization: Bearer <token>`) + refresh token
+**Déploiement** : Vercel (frontend) · Railway (backend + PostgreSQL) · Cloudinary (images)
+
+---
+
+## Stack technique imposée
+
+```
+Framework      : Next.js 14+ App Router
+Language       : TypeScript strict (zéro `any`)
+Styling        : Tailwind CSS v3
+Composants UI  : shadcn/ui
+Carte          : Leaflet.js + react-leaflet + react-leaflet-cluster (import dynamique SSR-safe)
+Formulaires    : React Hook Form + Zod
+Requêtes API   : Axios avec intercepteurs JWT
+État global    : Zustand
+Icons          : Lucide React
+Fonts          : Inter (Google Fonts)
+Animations     : Framer Motion
+Graphiques     : Recharts (dashboard admin)
+Dates          : date-fns
+```
+
+**Commandes d'installation :**
+```bash
+npx create-next-app@latest trouvtogo-web --typescript --tailwind --eslint --app
+cd trouvtogo-web
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add button card badge input textarea select dialog sheet tabs avatar skeleton toast
+npm install axios zustand react-hook-form zod @hookform/resolvers
+npm install framer-motion leaflet react-leaflet react-leaflet-cluster
+npm install -D @types/leaflet
+npm install lucide-react recharts date-fns
+```
+
+---
+
+## Design & identité visuelle
+
+Design **premium, épuré, professionnel**. Pas de design générique ou amateur.
+
+### Palette exacte — étendre dans `tailwind.config.js`
+```js
+colors: {
+  primary:   { DEFAULT: '#185FA5', light: '#E6F1FB', dark: '#0C447C' },
+  secondary: { DEFAULT: '#0F6E56', light: '#E1F5EE', dark: '#085041' },
+  accent:    { DEFAULT: '#BA7517', light: '#FAEEDA', dark: '#854F0B' },
+  danger:    { DEFAULT: '#A32D2D', light: '#FCEBEB', dark: '#791F1F' },
+  neutral: {
+    50: '#F8F7F4', 100: '#F1EFE8', 200: '#D3D1C7',
+    400: '#888780', 600: '#5F5E5A', 900: '#2C2C2A',
+  },
+}
+```
+
+### Convention couleurs sémantiques
+- **LOST** (perdu) → `danger` (rouge) — badge rouge, marqueur rouge sur carte
+- **FOUND** (trouvé) → `secondary` (vert) — badge vert, marqueur vert sur carte
+- **Match score ≥ 70** → `secondary` — bonne correspondance
+- **Match score 40–69** → `accent` — correspondance moyenne
+- **Match score < 40** → `neutral` — faible correspondance
+
+### Règles UI strictes
+- Arrondis : `rounded-xl` cartes, `rounded-full` pills/badges, `rounded-lg` boutons
+- Ombres : `shadow-sm` repos, `shadow-md` hover — jamais plus
+- Bordures : `border border-neutral-200` (0.5px en SVG, `1px` en CSS)
+- Transitions : `transition-all duration-200` sur tout élément interactif
+- Skeleton loaders sur **toutes** les listes et requêtes
+- États **loading / empty / error** obligatoires sur chaque composant de liste
+
+---
+
+## Types TypeScript — source de vérité (API officielle)
+
+```typescript
+// types/index.ts
+
+export type ItemType = 'LOST' | 'FOUND'
+
+export type ItemCategory =
+  | 'ELECTRONICS' | 'IDENTITY_PAPERS' | 'KEYS' | 'LUGGAGE'
+  | 'CLOTHING' | 'WALLET' | 'PHONE' | 'JEWELRY' | 'BOOKS'
+  | 'PETS' | 'OTHER'
+
+export type ItemStatus = 'ACTIVE' | 'RESOLVED' | 'CLOSED' | 'EXPIRED'
+
+export type NotificationType =
+  | 'NEW_MATCH_HIGH' | 'NEW_MATCH_MEDIUM' | 'NEW_MESSAGE'
+  | 'MATCH_VIEWED' | 'ITEM_RESOLVED' | 'ITEM_EXPIRING' | 'REMINDER'
+
+export interface Location {
+  address: string        // ex: "Bè, Lomé"
+  city: string           // ex: "Lomé"
+  district: string       // ex: "Bè"
+  latitude: number       // ex: 6.1319
+  longitude: number      // ex: 1.2225
+}
+
+export interface UserPublic {
+  id: number
+  name: string
+  avatar: string | null
+  city: string
+  joinDate: string       // ISO date
+  reputationScore: number
+}
+
+export interface UserStats {
+  totalItems: number
+  itemsFound: number
+  itemsReturned: number
+  activeItems: number
+  pendingMatches: number
+}
+
+export interface User {
+  id: number
+  name: string
+  email: string
+  phone: string
+  city: string
+  avatar: string | null
+  createdAt: string
+  lastLoginAt: string
+  stats: UserStats
+}
+
+export interface Item {
+  id: number
+  type: ItemType
+  category: ItemCategory
+  title: string
+  description: string
+  location: Location
+  depositLocation: string | null
+  date: string           // ISO date
+  images: string[]
+  status: ItemStatus
+  userId: number
+  user: UserPublic
+  createdAt: string
+  updatedAt: string
+  resolvedAt: string | null
+  reward: string | null  // ex: "5000 FCFA"
+  matchCount: number
+}
+
+export interface MatchScoreComponent {
+  score: number          // 0-100
+  weight: number         // pondération %
+  weightedScore: number
+  details: Record<string, unknown>
+}
+
+export interface MatchScoreDetails {
+  category: MatchScoreComponent
+  location: MatchScoreComponent
+  keywords: MatchScoreComponent
+  date: MatchScoreComponent
+  typeBonus: number
+  total: number
+}
+
+export interface MatchResult {
+  id: number
+  sourceItemId: number
+  targetItem: Item
+  score: number          // 0-100
+  scoreDetails: MatchScoreDetails
+  matchedKeywords: string[]
+  distanceKm: number | null
+  isRead: boolean
+  isNotified: boolean
+  createdAt: string
+  notifiedAt: string | null
+}
+
+export interface Conversation {
+  id: number
+  itemId: number
+  item: Item
+  otherUserId: number
+  otherUser: UserPublic
+  lastMessage: {
+    content: string
+    createdAt: string
+    isFromMe: boolean
+  }
+  unreadCount: number
+  matchScore: number
+  updatedAt: string
+}
+
+export interface Message {
+  id: number
+  conversationId: number
+  senderId: number
+  receiverId: number
+  content: string
+  isRead: boolean
+  createdAt: string
+}
+
+export interface Notification {
+  id: number
+  userId: number
+  type: NotificationType
+  title: string
+  content: string
+  data: {
+    matchId?: number
+    itemId?: number
+    score?: number
+    conversationId?: number
+  }
+  isRead: boolean
+  createdAt: string
+  actionUrl: string
+}
+
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  pages: number
+}
+
+export interface SearchResponse {
+  items: Item[]
+  pagination: Pagination
+  filters: Record<string, unknown>
+}
+
+export interface DashboardStats {
+  items: {
+    total: number
+    lost: number
+    found: number
+    resolved: number
+    active: number
+  }
+  matches: {
+    total: number
+    highScore: number
+    unread: number
+  }
+  recentActivity: RecentActivity[]
+}
+
+export interface RecentActivity {
+  id: number
+  type: 'ITEM_CREATED' | 'ITEM_RESOLVED' | 'NEW_MATCH' | 'MESSAGE_RECEIVED'
+  item?: Item
+  match?: MatchResult
+  createdAt: string
+}
+
+export interface PublicStats {
+  totalItems: number
+  resolvedItems: number
+  successRate: number
+  activeUsers: number
+  topCategories: { category: string; count: number }[]
+  averageMatchScore: number
+}
+
+export interface SuggestionsResponse {
+  summary: {
+    totalMatches: number
+    highScoreMatches: number
+    mediumScoreMatches: number
+  }
+  matchesByItem: {
+    userItem: Item
+    matches: MatchResult[]
+    bestScore: number
+  }[]
+}
+
+// Requêtes
+export interface RegisterRequest {
+  name: string
+  email: string
+  password: string
+  phone?: string
+  city?: string
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+  rememberMe?: boolean
+}
+
+export interface AuthResponse {
+  token: string
+  refreshToken: string
+  user: User
+}
+
+export interface CreateItemRequest {
+  type: ItemType
+  category: ItemCategory
+  title: string
+  description: string
+  location: Location
+  depositLocation?: string
+  date: string
+  images?: File[]
+  reward?: string
+}
+
+export interface SearchRequest {
+  query?: string
+  type?: ItemType
+  category?: ItemCategory
+  city?: string
+  radius?: number
+  latitude?: number
+  longitude?: number
+  dateFrom?: string
+  dateTo?: string
+  status?: ItemStatus
+  sortBy?: 'RECENT' | 'RELEVANCE' | 'DISTANCE' | 'MATCH_SCORE'
+  page?: number
+  limit?: number
+}
+```
+
+---
+
+## Client API — implémentation complète
+
+```typescript
+// lib/api.ts
+import axios from 'axios'
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1'
+
+export const api = axios.create({ baseURL: BASE_URL })
+
+// Injecter le token JWT automatiquement
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+// Refresh token si 401
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    if (error.response?.status === 401) {
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
+          localStorage.setItem('token', data.token)
+          error.config.headers.Authorization = `Bearer ${data.token}`
+          return api(error.config)
+        } catch {
+          localStorage.removeItem('token')
+          localStorage.removeItem('refreshToken')
+          window.location.href = '/login'
+        }
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ── Auth ──────────────────────────────────────────────────────────
+export const authAPI = {
+  register:       (data: RegisterRequest)        => api.post<AuthResponse>('/auth/register', data),
+  login:          (data: LoginRequest)           => api.post<AuthResponse>('/auth/login', data),
+  logout:         ()                             => api.post('/auth/logout'),
+  refresh:        (refreshToken: string)         => api.post('/auth/refresh', { refreshToken }),
+  forgotPassword: (email: string)                => api.post('/auth/forgot-password', { email }),
+  resetPassword:  (token: string, newPassword: string) =>
+                    api.post('/auth/reset-password', { token, newPassword }),
+}
+
+// ── Users ─────────────────────────────────────────────────────────
+export const usersAPI = {
+  getMe:      ()                => api.get<User>('/users/me'),
+  updateMe:   (data: Partial<User>) => api.put<User>('/users/me', data),
+  getMyStats: ()                => api.get<UserStats>('/users/me/stats'),
+  getUser:    (id: number)      => api.get<UserPublic>(`/users/${id}`),
+}
+
+// ── Items ─────────────────────────────────────────────────────────
+export const itemsAPI = {
+  list:      (params?: Partial<SearchRequest>) => api.get<SearchResponse>('/items', { params }),
+  get:       (id: number)                      => api.get<Item>(`/items/${id}`),
+  create:    (data: FormData)                  => api.post<Item>('/items', data, {
+               headers: { 'Content-Type': 'multipart/form-data' } }),
+  update:    (id: number, data: Partial<CreateItemRequest>) => api.put<Item>(`/items/${id}`, data),
+  delete:    (id: number)                      => api.delete(`/items/${id}`),
+  resolve:   (id: number, message?: string)    => api.patch<Item>(`/items/${id}/resolve`, { message }),
+  getMyItems:(params?: { status?: ItemStatus; type?: ItemType }) =>
+               api.get<Item[]>('/items/user/me', { params }),
+}
+
+// ── Matching ──────────────────────────────────────────────────────
+export const matchingAPI = {
+  forItem: (itemId: number, params?: { minScore?: number; limit?: number }) =>
+             api.get<{ sourceItem: Item; matches: MatchResult[]; total: number }>(
+               `/matches/for-item/${itemId}`, { params }),
+
+  suggestions: (params?: { limit?: number; minScore?: number; onlyUnread?: boolean }) =>
+                 api.get<SuggestionsResponse>('/matches/suggestions', { params }),
+
+  newMatches: (params?: { since?: string; minScore?: number }) =>
+                api.get<{ matches: MatchResult[]; total: number; since: string }>(
+                  '/matches/new', { params }),
+
+  trigger:    (itemId: number) => api.post(`/matches/trigger/${itemId}`),
+  triggerAll: ()               => api.post('/matches/trigger-all'),
+
+  getScore:   (matchId: number) => api.get(`/matches/${matchId}/score`),
+  markRead:   (matchId: number) => api.patch(`/matches/${matchId}/read`),
+
+  unreadCount: () => api.get<{ count: number; highScoreCount: number }>('/matches/unread-count'),
+}
+
+// ── Search ────────────────────────────────────────────────────────
+export const searchAPI = {
+  search: (data: SearchRequest)            => api.post<SearchResponse>('/search', data),
+  nearby: (lat: number, lng: number, params?: { radius?: number; type?: ItemType; limit?: number }) =>
+            api.get<Item[]>('/search/nearby', { params: { latitude: lat, longitude: lng, ...params } }),
+}
+
+// ── Conversations & Messages ──────────────────────────────────────
+export const messagesAPI = {
+  getConversations:  (params?: { page?: number; limit?: number }) =>
+                       api.get<Conversation[]>('/conversations', { params }),
+  createConversation:(data: { itemId: number; matchId?: number }) =>
+                       api.post<Conversation>('/conversations', data),
+  getMessages:       (convId: number, params?: { page?: number; limit?: number }) =>
+                       api.get<Message[]>(`/conversations/${convId}/messages`, { params }),
+  sendMessage:       (convId: number, content: string) =>
+                       api.post<Message>(`/conversations/${convId}/messages`, { content }),
+  markRead:          (convId: number) => api.patch(`/conversations/${convId}/read`),
+}
+
+// ── Notifications ─────────────────────────────────────────────────
+export const notificationsAPI = {
+  list:       (params?: { unreadOnly?: boolean; type?: NotificationType; page?: number; limit?: number }) =>
+                api.get<Notification[]>('/notifications', { params }),
+  markRead:   (id: number)  => api.patch(`/notifications/${id}/read`),
+  markAllRead:()            => api.patch('/notifications/read-all'),
+  unreadCount:()            => api.get<{ count: number; byType: Record<string, number> }>(
+                                '/notifications/unread-count'),
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+export const statsAPI = {
+  dashboard: () => api.get<DashboardStats>('/stats/dashboard'),
+  public:    () => api.get<PublicStats>('/stats/public'),
+}
+```
+
+---
+
+## Store Zustand
+
+```typescript
+// store/useAppStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface AppStore {
+  user: User | null
+  token: string | null
+  refreshToken: string | null
+  unreadNotifications: number
+  unreadMatches: number
+  unreadMessages: number
+
+  setAuth: (user: User, token: string, refreshToken: string) => void
+  clearAuth: () => void
+  setUnreadCounts: (notifs: number, matches: number, messages: number) => void
+}
+
+export const useAppStore = create<AppStore>()(
+  persist(
+    (set) => ({
+      user: null, token: null, refreshToken: null,
+      unreadNotifications: 0, unreadMatches: 0, unreadMessages: 0,
+
+      setAuth: (user, token, refreshToken) => {
+        localStorage.setItem('token', token)
+        localStorage.setItem('refreshToken', refreshToken)
+        set({ user, token, refreshToken })
+      },
+      clearAuth: () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
+        set({ user: null, token: null, refreshToken: null })
+      },
+      setUnreadCounts: (unreadNotifications, unreadMatches, unreadMessages) =>
+        set({ unreadNotifications, unreadMatches, unreadMessages }),
+    }),
+    { name: 'trouvtogo-store', partialize: (s) => ({ user: s.user, token: s.token, refreshToken: s.refreshToken }) }
+  )
+)
+```
+
+---
+
+## Structure du projet
+
+```
+trouvtogo-web/
+├── app/
+│   ├── (public)/
+│   │   ├── page.tsx                        # Accueil
+│   │   ├── annonces/
+│   │   │   ├── page.tsx                    # Fil + carte GPS
+│   │   │   └── [id]/page.tsx              # Détail annonce
+│   │   ├── declarer/
+│   │   │   ├── perdu/page.tsx             # Formulaire LOST
+│   │   │   └── trouve/page.tsx            # Formulaire FOUND
+│   │   ├── login/page.tsx
+│   │   ├── inscription/page.tsx
+│   │   └── profil/[id]/page.tsx           # Profil public
+│   ├── (app)/                              # Authentifié
+│   │   ├── dashboard/page.tsx             # Tableau de bord user
+│   │   ├── mes-annonces/page.tsx
+│   │   ├── matches/page.tsx               # Suggestions matching
+│   │   ├── messages/
+│   │   │   ├── page.tsx                   # Liste conversations
+│   │   │   └── [id]/page.tsx             # Conversation
+│   │   └── notifications/page.tsx
+│   ├── admin/
+│   │   ├── page.tsx                       # Dashboard admin
+│   │   └── moderation/page.tsx
+│   ├── layout.tsx
+│   └── globals.css
+├── components/
+│   ├── ui/                                # shadcn/ui
+│   ├── layout/
+│   │   ├── Navbar.tsx
+│   │   ├── Footer.tsx
+│   │   └── AdminSidebar.tsx
+│   ├── annonce/
+│   │   ├── AnnonceCard.tsx
+│   │   ├── AnnonceFeed.tsx
+│   │   ├── AnnonceDetail.tsx
+│   │   ├── CategoryBadge.tsx
+│   │   ├── StatusBadge.tsx
+│   │   └── RewardBadge.tsx
+│   ├── matching/
+│   │   ├── MatchCard.tsx
+│   │   ├── MatchScoreBar.tsx
+│   │   ├── MatchBanner.tsx
+│   │   ├── MatchScoreDetail.tsx
+│   │   └── SuggestionsList.tsx
+│   ├── map/
+│   │   ├── MapView.tsx                    # Import dynamique SSR-safe
+│   │   └── LocationPicker.tsx            # Carte interactive pour formulaires
+│   ├── messages/
+│   │   ├── ConversationList.tsx
+│   │   └── MessageThread.tsx
+│   ├── forms/
+│   │   ├── DeclarerForm.tsx              # Formulaire stepper (LOST + FOUND)
+│   │   ├── steps/
+│   │   │   ├── CategoryStep.tsx
+│   │   │   ├── DescriptionStep.tsx
+│   │   │   ├── LocationStep.tsx          # Inclut carte GPS
+│   │   │   └── ConfirmStep.tsx
+│   │   └── ImageUpload.tsx
+│   └── admin/
+│       ├── StatsCards.tsx
+│       ├── ActivityFeed.tsx
+│       └── ItemsTable.tsx
+├── hooks/
+│   ├── useItems.ts
+│   ├── useMatches.ts
+│   ├── useMessages.ts
+│   ├── useNotifications.ts
+│   └── useAuth.ts
+├── lib/
+│   ├── api.ts
+│   ├── auth.ts
+│   └── utils.ts
+├── store/
+│   └── useAppStore.ts
+├── types/
+│   └── index.ts
+└── public/
+```
+
+---
+
+## Pages — description précise
+
+### 1. `/` — Accueil
+
+**Hero :**
+- Titre : "Retrouvez vos objets perdus au Togo"
+- Sous-titre sobre
+- 2 CTA côte à côte : "J'ai perdu un objet" (primary) · "J'ai trouvé un objet" (secondary)
+
+**Stats publiques** — appel `GET /stats/public` :
+- 3 cards animées (compteur au scroll) : `totalItems`, `resolvedItems`, `activeUsers`
+- `successRate` affiché en pourcentage avec anneau SVG
+
+**Comment ça marche :** 3 étapes illustrées (Signalez → Matching → Récupérez)
+
+**Dernières annonces** — appel `GET /items?limit=6&sortBy=RECENT` :
+- Grille 3 cols desktop / 2 tablet / 1 mobile
+- Skeleton lors du chargement
+
+---
+
+### 2. `/annonces` — Fil + carte GPS
+
+**Layout split :**
+- Gauche (40%) : liste filtrée avec recherche et filtres
+- Droite (60%) : carte Leaflet (import dynamique obligatoire)
+
+**Filtres :**
+- Pills : Tous / Perdus (`type=LOST`) / Trouvés (`type=FOUND`)
+- Dropdown catégorie : `ELECTRONICS, IDENTITY_PAPERS, KEYS, LUGGAGE, CLOTHING, WALLET, PHONE, JEWELRY, BOOKS, PETS, OTHER`
+- Dropdown ville : Lomé, Kpalimé, Sokodé, Atakpamé, Kara, Dapaong
+- Tri : `RECENT, RELEVANCE, DISTANCE, MATCH_SCORE`
+- Recherche texte → `POST /search`
+
+**Appels API :**
+```
+GET /items?type=&category=&city=&page=&limit=20
+POST /search (recherche avancée)
+GET /search/nearby?latitude=&longitude=&radius=10 (bouton "Près de moi")
+```
+
+**Carte Leaflet :**
+- Centré Lomé `{ lat: 6.1375, lng: 1.2123 }` zoom 13
+- Marqueurs custom : rouge SVG pour LOST, vert SVG pour FOUND
+- Clustering automatique (react-leaflet-cluster)
+- Popup au clic : titre + badge + bouton "Voir le détail"
+- Bouton géolocalisation → `GET /search/nearby`
+- Sur mobile : tabs "Liste" / "Carte"
+
+---
+
+### 3. `/annonces/[id]` — Détail annonce
+
+**Appels API :**
+```
+GET /items/{id}                                        # Données annonce
+GET /matches/for-item/{id}?minScore=40&limit=5        # Matches liés (si connecté)
+GET /items?category={cat}&city={city}&limit=3          # Annonces similaires
+```
+
+**Contenu :**
+- Galerie photos (ou placeholder)
+- Badge `LOST`/`FOUND` coloré + badge `status`
+- Badge récompense si `reward !== null`
+- Titre, catégorie, description complète
+- Location : adresse, district, ville
+- Mini-carte Leaflet non-interactive (point fixe)
+- Date de perte/découverte + lieu de dépôt si FOUND
+
+**Bannière match** (si `matches.length > 0`, connecté) :
+- Fond `secondary.light`, texte : "X correspondance(s) trouvée(s)"
+- Score du meilleur match avec barre colorée
+- CTA "Voir les correspondances"
+
+**Actions :**
+- "Contacter" → `POST /conversations` avec `{ itemId, matchId }` → ouvre dialog messagerie
+- "Partager sur WhatsApp" → `https://wa.me/?text=...`
+- Si propriétaire → "Marquer comme résolu" → `PATCH /items/{id}/resolve`
+- "Signaler un abus" (lien discret)
+
+---
+
+### 4. `/declarer/perdu` et `/declarer/trouve`
+
+**Stepper 4 étapes avec barre de progression :**
+
+**Étape 1 — Catégorie :**
+- Grille cards cliquables avec icônes Lucide :
+  - `PHONE` → Smartphone
+  - `IDENTITY_PAPERS` → CreditCard
+  - `KEYS` → Key
+  - `LUGGAGE` → Briefcase
+  - `WALLET` → Wallet
+  - `ELECTRONICS` → Laptop
+  - `JEWELRY` → Gem
+  - `CLOTHING` → Shirt
+  - `PETS` → PawPrint
+  - `BOOKS` → BookOpen
+  - `OTHER` → Package
+- Card sélectionnée → bordure primary + fond primary.light + checkmark
+
+**Étape 2 — Description :**
+- Champ `title` (obligatoire)
+- Textarea `description` (obligatoire, max 2000 chars, compteur de caractères)
+- Champ `reward` (optionnel) — "Récompense offerte (ex: 5000 FCFA)"
+- Upload `images` : drag & drop + clic, prévisualisation, max 5 photos
+- Si FOUND : avertissement "Ne mentionnez pas les infos sensibles (nom complet, numéro…)"
+
+**Étape 3 — Lieu & date :**
+- Champ `location.district` avec suggestions (autocomplete) :
+  Adidogomé, Bè, Agoè, Tokoin, Nyékonakpoè, Kodjoviakopé, Hédzranawoé, Aflao, Djidjolé…
+- Champ `location.city` : Lomé, Kpalimé, Sokodé, Atakpamé, Kara, Dapaong
+- **Carte Leaflet interactive** :
+  - L'utilisateur clique pour poser un marqueur
+  - Le marqueur est glissable
+  - `location.latitude` et `location.longitude` capturés automatiquement
+  - `location.address` auto-complété avec district + ville
+- Date picker `date` (obligatoire) — date de perte (LOST) ou de découverte (FOUND)
+- Si FOUND uniquement : `depositLocation` — champ texte "Où est déposé l'objet ?"
+  avec suggestions radio : "Je le garde", "Commissariat / Mairie", "Commerçant partenaire"
+
+**Étape 4 — Confirmation :**
+- Récapitulatif visuel complet
+- Checkboxes CGU
+- Bouton "Publier" → `POST /items` (multipart/form-data)
+- Après succès → `POST /matches/trigger/{newItemId}` (lancer le matching)
+- Animation de confirmation + redirect vers `/annonces/{id}`
+
+**Validation Zod à chaque étape.** Pas de passage à l'étape suivante si invalide.
+
+---
+
+### 5. `/dashboard` — Tableau de bord utilisateur (authentifié)
+
+**Appels API :**
+```
+GET /stats/dashboard
+GET /matches/new?minScore=50
+GET /matches/unread-count
+GET /items/user/me?status=ACTIVE
+GET /notifications?limit=5
+```
+
+**Contenu :**
+- 4 KPI cards : annonces actives (`items.active`), résolues (`items.resolved`), matchs non lus (`matches.unread`), matchs fort score (`matches.highScore`)
+- Section "Nouvelles correspondances" : liste des derniers matchs avec score coloré
+- Mes annonces actives : liste compacte avec statut
+- Activité récente (`recentActivity`)
+
+---
+
+### 6. `/matches` — Suggestions de matching (authentifié)
+
+**Appels API :**
+```
+GET /matches/suggestions?minScore=40
+GET /matches/unread-count
+```
+
+**Affichage :**
+- Groupé par annonce de l'utilisateur (`matchesByItem`)
+- Pour chaque groupe : titre de l'annonce + nombre de matchs + meilleur score
+- Pour chaque match : card avec l'annonce cible, score coloré (barre + chiffre), mots-clés communs (`matchedKeywords`), distance (`distanceKm`)
+- Filtre : Tous / Score élevé (≥70) / Score moyen (40–69)
+- Au clic sur un match → `PATCH /matches/{id}/read` + ouvrir détail
+
+**Score visuel :**
+```
+≥ 70 → barre verte  + texte "Très bonne correspondance"
+40–69 → barre ambre + texte "Correspondance moyenne"
+< 40 → barre grise  + texte "Faible correspondance"
+```
+
+---
+
+### 7. `/messages` — Messagerie (authentifié)
+
+**Appels API :**
+```
+GET /conversations
+GET /conversations/{id}/messages
+POST /conversations/{id}/messages
+PATCH /conversations/{id}/read
+```
+
+**Layout :**
+- Liste conversations à gauche (avatar, nom, aperçu message, badge non lus, score match)
+- Thread à droite : messages bulles, champ envoi
+- Sur mobile : navigation entre liste et thread
+
+---
+
+### 8. `/notifications` — Notifications (authentifié)
+
+**Appels API :**
+```
+GET /notifications
+PATCH /notifications/{id}/read
+PATCH /notifications/read-all
+```
+
+**Types de notifs avec icônes :**
+- `NEW_MATCH_HIGH` → Bell rouge (urgent)
+- `NEW_MATCH_MEDIUM` → Bell ambre
+- `NEW_MESSAGE` → MessageSquare bleu
+- `ITEM_RESOLVED` → CheckCircle vert
+- `ITEM_EXPIRING` → Clock orange
+- `REMINDER` → Info gris
+
+---
+
+### 9. `/inscription` et `/login`
+
+**Inscription :**
+- Champs : `name`, `email`, `phone` (format +228), `password`, `city`
+- Validation Zod complète
+- `POST /auth/register` → stocker token + redirect `/dashboard`
+
+**Connexion :**
+- Champs : `email`, `password`, `rememberMe`
+- `POST /auth/login` → stocker token + redirect
+- Lien "Mot de passe oublié" → `POST /auth/forgot-password`
+
+---
+
+### 10. `/admin` — Dashboard admin
+
+**Accessible uniquement `role === 'ADMIN'`** — middleware de protection.
+
+**Layout :** Sidebar 240px fixe + zone principale
+
+**Sidebar items :**
+Vue d'ensemble · Annonces · Modération · Statistiques · Utilisateurs · Paramètres
+
+**Stats :**
+```
+GET /stats/dashboard   (KPIs)
+GET /items?page=&limit=20  (tableau d'annonces)
+GET /stats/public      (statistiques globales)
+```
+
+**Graphique Recharts :**
+- LineChart : évolution des annonces sur 30 jours (LOST vs FOUND)
+- BarChart horizontal : top catégories (`topCategories`)
+
+---
+
+## Composants critiques
+
+### `MapView.tsx` — Import dynamique obligatoire
+```typescript
+// components/map/MapView.tsx
+'use client'
+// Ce composant est importé avec dynamic() dans les pages :
+// const MapView = dynamic(() => import('@/components/map/MapView'), { ssr: false })
+
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
+import L from 'leaflet'
+
+// Marqueurs custom SVG
+const lostIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:28px;height:28px;background:#A32D2D;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
+  iconSize: [28, 28], iconAnchor: [14, 28],
+})
+const foundIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:28px;height:28px;background:#0F6E56;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
+  iconSize: [28, 28], iconAnchor: [14, 28],
+})
+```
+
+### `MatchScoreBar.tsx`
+```typescript
+// Barre de score colorée selon le niveau
+// score ≥ 70 → bg-secondary, 40-69 → bg-accent, <40 → bg-neutral-400
+// Afficher aussi les matchedKeywords sous forme de pills
+```
+
+### `AnnonceCard.tsx`
+- Hauteur fixe 180px pour grille uniforme
+- Badge `LOST`/`FOUND` en haut à droite
+- Badge récompense si `reward !== null`
+- `matchCount` affiché si > 0 : "X correspondance(s)"
+- `line-clamp-2` sur description
+- Skeleton identique à la vraie card (même hauteur)
+
+---
+
+## Données mockées — `lib/mockData.ts`
+
+Créer 10 annonces avec les **vraies coordonnées GPS de Lomé** :
+```typescript
+export const LOMÉ_DISTRICTS = {
+  'Bè':           { lat: 6.1279, lng: 1.2201 },
+  'Adidogomé':    { lat: 6.1614, lng: 1.1814 },
+  'Agoè':         { lat: 6.1917, lng: 1.2103 },
+  'Tokoin':       { lat: 6.1456, lng: 1.2367 },
+  'Nyékonakpoè':  { lat: 6.1389, lng: 1.2289 },
+  'Kodjoviakopé': { lat: 6.1321, lng: 1.2089 },
+  'Hédzranawoé':  { lat: 6.1512, lng: 1.1956 },
+  'Djidjolé':     { lat: 6.1678, lng: 1.2234 },
+}
+
+// Catégories réalistes au Togo
+// - CNI togolaise (IDENTITY_PAPERS)
+// - Samsung / Tecno / Itel (PHONE)
+// - Moto (LUGGAGE)
+// - Sac de marché (LUGGAGE)
+// - Trousseau de clés (KEYS)
+```
+
+---
+
+## Configuration
+
+### `.env.local`
+```
+NEXT_PUBLIC_API_URL=http://localhost:3000/v1
+NEXT_PUBLIC_MAP_LAT=6.1375
+NEXT_PUBLIC_MAP_LNG=1.2123
+NEXT_PUBLIC_MAP_ZOOM=13
+```
+
+### `next.config.js`
+```js
+const nextConfig = {
+  images: { domains: ['cdn.trouvtogo.com', 'res.cloudinary.com'] },
+}
+module.exports = nextConfig
+```
+
+---
+
+## Règles de qualité — non négociables
+
+1. **TypeScript strict** : zéro `any`, tous les props et retours typés
+2. **SSR-safe** : import dynamique `{ ssr: false }` pour Leaflet, sans exception
+3. **États UI complets** : loading (skeleton) · empty (illustration + texte) · error (message + retry)
+4. **Accessibilité** : `aria-label` sur boutons icon-only, contraste WCAG AA
+5. **Performance** : `next/image` pour toutes les images, pagination infinie ou "Voir plus"
+6. **SEO** : `generateMetadata` sur chaque page publique
+7. **Responsive strict** : mobile-first, testé à 375px, 768px, 1280px
+8. **Conventions** : composants < 200 lignes, logique dans les hooks, pages = composition uniquement
+
+---
+
+## Ordre d'implémentation recommandé
+
+1. Config (tailwind, env, next.config)
+2. Types TypeScript complets
+3. Client API avec intercepteurs
+4. Store Zustand
+5. Layout (Navbar avec badges unread, Footer)
+6. Page d'accueil (stats publiques)
+7. Fil des annonces + carte GPS
+8. Détail annonce
+9. Formulaires déclaration (stepper)
+10. Auth (login, inscription)
+11. Dashboard utilisateur + matches
+12. Messagerie
+13. Notifications
+14. Admin dashboard
+
+emplacement documentation api : file:///home/k-luc/Downloads/html-documentation-generated/index.html
