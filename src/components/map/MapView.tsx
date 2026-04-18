@@ -1,6 +1,7 @@
 // src/components/map/MapView.tsx
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -14,7 +15,7 @@ import { fr } from 'date-fns/locale'
 // Marqueurs custom SVG
 const createIcon = (color: string) => L.divIcon({
   className: '',
-  html: `<div style="width:28px;height:28px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,
+  html: `<div style="width:28px;height:28px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;"></div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
   popupAnchor: [0, -28],
@@ -34,48 +35,68 @@ export default function MapView({
   center = [6.1375, 1.2123], 
   zoom = 13 
 }: MapViewProps) {
+  const [ready, setReady] = useState(false)
+  const mapRef = useRef<L.Map | null>(null)
+  useEffect(() => {
+    setReady(true)
+  }, [])
+
+  if (!ready) {
+    return (
+      <div className="flex h-full min-h-[inherit] w-full items-center justify-center bg-[#e8eeec]">
+        <p className="text-sm font-medium text-neutral-500">Préparation de la carte…</p>
+      </div>
+    )
+  }
+
   return (
-    <MapContainer 
-      center={center} 
-      zoom={zoom} 
-      scrollWheelZoom={true}
-      className="h-full w-full z-0"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MarkerClusterGroup chunkedLoading>
-        {items.map((item) => (
-          <Marker 
-            key={item.id} 
-            position={[item.location.latitude, item.location.longitude]}
-            icon={item.type === 'LOST' ? lostIcon : foundIcon}
-          >
-            <Popup className="custom-popup">
-              <div className="p-1 max-w-[200px]">
-                <div className="flex justify-between items-start mb-2 gap-2">
-                  <Badge className={item.type === 'LOST' ? 'bg-danger' : 'bg-secondary'}>
-                    {item.type === 'LOST' ? 'Perdu' : 'Trouvé'}
-                  </Badge>
-                  <span className="text-[10px] text-neutral-400">
-                    {format(new Date(item.date), 'dd MMM', { locale: fr })}
-                  </span>
+    <div className="h-full min-h-[inherit] w-full [&_.leaflet-container]:h-full [&_.leaflet-container]:min-h-[inherit] [&_.leaflet-container]:w-full">
+      <MapContainer
+        ref={mapRef}
+        center={center}
+        zoom={zoom}
+        scrollWheelZoom
+        className="z-0 h-full min-h-[inherit] w-full"
+        whenReady={() => {
+          requestAnimationFrame(() => mapRef.current?.invalidateSize())
+        }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MarkerClusterGroup chunkedLoading>
+          {items.map((item) => (
+            <Marker
+              key={item.id}
+              position={[item.location.latitude, item.location.longitude]}
+              icon={item.type === 'LOST' ? lostIcon : foundIcon}
+            >
+              <Popup className="custom-popup">
+                <div className="p-1 max-w-[200px]">
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <Badge className={item.type === 'LOST' ? 'bg-danger' : 'bg-secondary'}>
+                      {item.type === 'LOST' ? 'Perdu' : 'Trouvé'}
+                    </Badge>
+                    <span className="text-[10px] text-neutral-400">
+                      {format(new Date(item.date), 'dd MMM', { locale: fr })}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-sm mb-1 line-clamp-1">{item.title}</h4>
+                  <p className="text-xs text-neutral-500 mb-3 line-clamp-2 leading-tight">
+                    {item.location.address}
+                  </p>
+                  <Link href={`/annonces/${item.id}`} className="w-full">
+                    <Button size="sm" className="w-full h-8 text-xs bg-primary hover:bg-primary-dark">
+                      Voir le détail
+                    </Button>
+                  </Link>
                 </div>
-                <h4 className="font-bold text-sm mb-1 line-clamp-1">{item.title}</h4>
-                <p className="text-xs text-neutral-500 mb-3 line-clamp-2 leading-tight">
-                  {item.location.address}
-                </p>
-                <Link href={`/annonces/${item.id}`} className="w-full">
-                  <Button size="sm" className="w-full h-8 text-xs bg-primary hover:bg-primary-dark">
-                    Voir le détail
-                  </Button>
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MarkerClusterGroup>
-    </MapContainer>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
+      </MapContainer>
+    </div>
   )
 }

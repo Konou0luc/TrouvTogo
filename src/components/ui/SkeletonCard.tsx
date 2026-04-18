@@ -1,26 +1,26 @@
 // src/components/ui/SkeletonCard.tsx
 export default function SkeletonCard() {
   return (
-    <div className="bg-white rounded-[2.5rem] overflow-hidden border border-neutral-100 h-[260px] flex animate-pulse">
-      <div className="w-2/5 h-full bg-neutral-100" />
-      <div className="flex-1 p-8 flex flex-col justify-between">
+    <div className="flex h-[260px] animate-pulse overflow-hidden rounded-[2.5rem] border border-neutral-200/50 bg-white dark:border-neutral-700/70 dark:bg-card">
+      <div className="h-full w-2/5 bg-neutral-100 dark:bg-neutral-800" />
+      <div className="flex flex-1 flex-col justify-between p-8">
         <div className="space-y-4">
           <div className="flex gap-2">
-            <div className="h-6 w-20 bg-neutral-100 rounded-full" />
-            <div className="h-6 w-20 bg-neutral-100 rounded-full" />
+            <div className="h-6 w-20 rounded-full bg-neutral-100 dark:bg-neutral-700" />
+            <div className="h-6 w-20 rounded-full bg-neutral-100 dark:bg-neutral-700" />
           </div>
-          <div className="h-8 w-3/4 bg-neutral-100 rounded-xl" />
+          <div className="h-8 w-3/4 rounded-xl bg-neutral-100 dark:bg-neutral-700" />
           <div className="space-y-2">
-            <div className="h-4 w-full bg-neutral-50 rounded" />
-            <div className="h-4 w-5/6 bg-neutral-50 rounded" />
+            <div className="h-4 w-full rounded bg-neutral-50 dark:bg-neutral-800" />
+            <div className="h-4 w-5/6 rounded bg-neutral-50 dark:bg-neutral-800" />
           </div>
         </div>
-        <div className="flex justify-between items-center pt-6 border-t border-neutral-50">
+        <div className="flex items-center justify-between border-t border-neutral-50 pt-6 dark:border-neutral-700">
           <div className="flex gap-4">
-            <div className="h-4 w-16 bg-neutral-50 rounded" />
-            <div className="h-4 w-16 bg-neutral-50 rounded" />
+            <div className="h-4 w-16 rounded bg-neutral-50 dark:bg-neutral-800" />
+            <div className="h-4 w-16 rounded bg-neutral-50 dark:bg-neutral-800" />
           </div>
-          <div className="h-6 w-20 bg-neutral-100 rounded-full" />
+          <div className="h-6 w-20 rounded-full bg-neutral-100 dark:bg-neutral-700" />
         </div>
       </div>
     </div>

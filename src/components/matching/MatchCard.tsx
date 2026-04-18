@@ -13,7 +13,7 @@ export default function MatchCard({ match }: { match: MatchResult }) {
   const item = match.targetItem
   
   return (
-    <Card className="overflow-hidden border-neutral-100 shadow-sm hover:shadow-md transition-all">
+    <Card className="overflow-hidden border-neutral-200 transition-colors hover:border-neutral-300">
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row">
           {/* Item Image */}

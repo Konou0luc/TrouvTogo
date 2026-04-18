@@ -6,7 +6,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-neutral-950 text-neutral-200 pt-24 pb-12 overflow-hidden relative">
+    <footer className="relative overflow-hidden border-t border-neutral-800 bg-neutral-950 pt-20 pb-12 text-neutral-200">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       
@@ -15,11 +15,11 @@ export default function Footer() {
           {/* Brand & Mission */}
           <div className="md:col-span-5">
             <Link href="/" className="flex items-center gap-3 mb-8 group">
-              <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/40 bg-primary transition-opacity group-hover:opacity-90">
                 <Search className="h-6 w-6 text-white" />
               </div>
               <span className="text-2xl font-black text-white tracking-tighter">
-                Trouv<span className="text-secondary">Togo</span>
+                Trouv<span className="text-primary-light">Togo</span>
               </span>
             </Link>
             <p className="text-lg text-neutral-400 mb-10 leading-relaxed font-medium max-w-md">
@@ -111,9 +111,9 @@ export default function Footer() {
               <ShieldCheck className="h-4 w-4" />
               <span>Système sécurisé</span>
             </div>
-            <div className="flex items-center gap-2 text-xs font-black text-accent uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-xs font-black text-primary-light/90 uppercase tracking-widest">
               <Zap className="h-4 w-4" />
-              <span>Matching IA Actif</span>
+              <span>Matching actif</span>
             </div>
           </div>
           

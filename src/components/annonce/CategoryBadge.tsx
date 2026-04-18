@@ -29,14 +29,25 @@ const categoryConfig: Record<ItemCategory, { label: string, icon: any }> = {
   OTHER: { label: 'Autre', icon: Package },
 }
 
-export default function CategoryBadge({ category }: { category: ItemCategory }) {
-  const config = categoryConfig[category]
+export default function CategoryBadge({
+  category,
+  label,
+}: {
+  category: ItemCategory
+  /** Libellé depuis l’API (référentiel catégories) ; sinon libellé enum */
+  label?: string | null
+}) {
+  const config = categoryConfig[category] ?? categoryConfig.OTHER
   const Icon = config.icon
+  const text = label?.trim() || config.label
 
   return (
-    <Badge variant="secondary" className="flex items-center gap-1 font-normal bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border-none">
+    <Badge
+      variant="secondary"
+      className="flex items-center gap-1 border-none bg-neutral-100 font-normal text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+    >
       <Icon className="h-3 w-3" />
-      {config.label}
+      {text}
     </Badge>
   )
 }

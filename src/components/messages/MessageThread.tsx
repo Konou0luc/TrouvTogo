@@ -44,7 +44,7 @@ export default function MessageThread({ messages, currentUser, otherUser }: Mess
                 <div className="space-y-1">
                   <div className={`p-3 rounded-2xl text-sm ${
                     isMe 
-                      ? 'bg-primary text-white rounded-br-none shadow-sm' 
+                      ? 'rounded-br-none bg-primary text-white' 
                       : 'bg-neutral-100 text-neutral-900 rounded-bl-none'
                   }`}>
                     {msg.content}
@@ -74,7 +74,7 @@ export default function MessageThread({ messages, currentUser, otherUser }: Mess
           <Button 
             type="submit" 
             size="icon" 
-            className={`shrink-0 h-11 w-11 rounded-full shadow-md transition-all ${
+            className={`h-11 w-11 shrink-0 rounded-full border border-neutral-200 transition-all ${
               newMessage.trim() ? 'bg-primary hover:bg-primary-dark' : 'bg-neutral-200 cursor-not-allowed'
             }`}
             disabled={!newMessage.trim()}

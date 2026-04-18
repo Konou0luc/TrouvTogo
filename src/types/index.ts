@@ -53,6 +53,10 @@ export interface User {
 
 export interface Item {
   id: number
+  /** Id catégorie côté API (CollectObjet), pour filtres / similaires */
+  categoryId?: number | null
+  /** Libellé affiché (API), prioritaire sur l’enum */
+  categoryDisplayName?: string | null
   type: ItemType
   category: ItemCategory
   title: string

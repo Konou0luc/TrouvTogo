@@ -1,7 +1,7 @@
 // src/components/forms/DeclarerForm.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -11,17 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
-import { 
-  Laptop, 
-  CreditCard, 
-  Key, 
-  Briefcase, 
-  Shirt, 
-  Wallet, 
-  Smartphone, 
-  Gem, 
-  BookOpen, 
-  PawPrint, 
+import {
   Package,
   ChevronRight,
   ChevronLeft,
@@ -30,10 +20,14 @@ import {
   X,
   MapPin,
   Calendar as CalendarIcon,
-  Loader2
+  Loader2,
 } from 'lucide-react'
-import { ItemCategory, ItemType } from '@/types'
+import { ItemType } from '@/types'
 import { toast } from 'sonner'
+import { createObjet, fetchCategories, uploadImages } from '@/lib/api'
+import type { BackendCategorie } from '@/lib/backend-types'
+import { itemTypeToBackend } from '@/lib/mappers'
+import { useAppStore } from '@/store/useAppStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -56,25 +50,29 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-const categories: { id: ItemCategory; label: string; icon: any }[] = [
-  { id: 'PHONE', label: 'Téléphone', icon: Smartphone },
-  { id: 'IDENTITY_PAPERS', label: 'Papiers', icon: CreditCard },
-  { id: 'KEYS', label: 'Clés', icon: Key },
-  { id: 'LUGGAGE', label: 'Bagages', icon: Briefcase },
-  { id: 'WALLET', label: 'Portefeuille', icon: Wallet },
-  { id: 'ELECTRONICS', label: 'Électronique', icon: Laptop },
-  { id: 'JEWELRY', label: 'Bijoux', icon: Gem },
-  { id: 'CLOTHING', label: 'Vêtements', icon: Shirt },
-  { id: 'PETS', label: 'Animaux', icon: PawPrint },
-  { id: 'BOOKS', label: 'Livres', icon: BookOpen },
-  { id: 'OTHER', label: 'Autre', icon: Package },
-]
-
 export default function DeclarerForm({ type }: { type: ItemType }) {
   const router = useRouter()
+  const token = useAppStore((s) => s.token)
   const [step, setStep] = useState(1)
   const [images, setImages] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [apiCategories, setApiCategories] = useState<BackendCategorie[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+
+  useEffect(() => {
+    if (!token) {
+      toast.error('Connectez-vous pour publier une annonce.')
+      router.push('/login')
+      return
+    }
+    setCategoriesLoading(true)
+    fetchCategories()
+      .then((cats) => {
+        setApiCategories(cats)
+      })
+      .catch(() => toast.error('Impossible de charger les catégories.'))
+      .finally(() => setCategoriesLoading(false))
+  }, [token, router])
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -120,13 +118,36 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
   }
 
   const onSubmit = async (data: FormValues) => {
+    if (!token) {
+      router.push('/login')
+      return
+    }
     setIsSubmitting(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      let photosUrls: string[] = []
+      if (images.length > 0) {
+        photosUrls = await uploadImages(images)
+      }
+      const cat = apiCategories.find((c) => c.nom === data.category)
+      const categorieId = cat?.id ?? null
+      const localisation = [data.district, data.city].filter(Boolean).join(', ')
+      const dateEvenement = `${data.date}T12:00:00`
+
+      await createObjet({
+        titre: data.title,
+        description: data.description,
+        type: itemTypeToBackend(type),
+        localisation,
+        dateEvenement,
+        categorieId,
+        photosUrls,
+      })
       toast.success('Annonce publiée avec succès !')
       router.push('/annonces')
     } catch (error) {
-      toast.error('Une erreur est survenue.')
+      toast.error(
+        error instanceof Error ? error.message : 'Une erreur est survenue.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -140,7 +161,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
           {[1, 2, 3, 4].map(s => (
             <div key={s} className="flex flex-col items-center">
               <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                step >= s ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-neutral-100 text-neutral-400'
+                step >= s ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-400'
               }`}>
                 {step > s ? <CheckCircle2 className="h-6 w-6" /> : s}
               </div>
@@ -163,24 +184,43 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-2xl font-bold mb-6 text-center">Choisissez une catégorie</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categories.map((cat) => (
-                <Card 
-                  key={cat.id}
-                  onClick={() => setValue('category', cat.id)}
-                  className={`p-6 cursor-pointer hover:shadow-md transition-all flex flex-col items-center text-center gap-3 border-2 ${
-                    currentCategory === cat.id ? 'border-primary bg-primary-light/30' : 'border-transparent'
-                  }`}
-                >
-                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                    currentCategory === cat.id ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-600'
-                  }`}>
-                    <cat.icon className="h-6 w-6" />
-                  </div>
-                  <span className="text-sm font-bold">{cat.label}</span>
-                </Card>
-              ))}
-            </div>
+            {categoriesLoading ? (
+              <div className="flex justify-center py-16">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              </div>
+            ) : apiCategories.length === 0 ? (
+              <p className="text-center text-neutral-500">
+                Aucune catégorie disponible. Réessayez plus tard.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {apiCategories.map((cat) => {
+                  const label = cat.description?.trim() || cat.nom
+                  return (
+                    <Card
+                      key={cat.id}
+                      onClick={() => setValue('category', cat.nom)}
+                      className={`flex cursor-pointer flex-col items-center gap-3 border-2 p-6 text-center transition-colors ${
+                        currentCategory === cat.nom
+                          ? 'border-primary bg-primary-light/30'
+                          : 'border-transparent'
+                      }`}
+                    >
+                      <div
+                        className={`h-12 w-12 rounded-xl flex items-center justify-center ${
+                          currentCategory === cat.nom
+                            ? 'bg-primary text-white'
+                            : 'bg-neutral-100 text-neutral-600'
+                        }`}
+                      >
+                        <Package className="h-6 w-6" />
+                      </div>
+                      <span className="text-sm font-bold leading-tight">{label}</span>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -325,7 +365,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
               <p className="text-neutral-500 text-sm">Veuillez relire vos informations avant de publier.</p>
             </div>
 
-            <Card className="p-6 bg-white border-neutral-100 shadow-sm space-y-6">
+            <Card className="space-y-6 border-neutral-200 bg-white p-6">
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div>
@@ -334,7 +374,11 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Catégorie</span>
-                    <p className="font-medium">{categories.find(c => c.id === currentCategory)?.label}</p>
+                    <p className="font-medium">
+                      {apiCategories.find((c) => c.nom === currentCategory)?.description?.trim() ||
+                        apiCategories.find((c) => c.nom === currentCategory)?.nom ||
+                        currentCategory}
+                    </p>
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Description</span>
@@ -386,7 +430,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
           ) : (
             <Button 
               type="submit" 
-              className="h-12 px-12 rounded-xl bg-secondary hover:bg-secondary-dark font-bold text-lg shadow-lg shadow-secondary/20"
+              className="h-12 rounded-xl bg-secondary px-12 font-bold text-lg hover:bg-secondary-dark"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

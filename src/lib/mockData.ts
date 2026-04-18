@@ -26,49 +26,60 @@ export const MOCK_STATS: PublicStats = {
   averageMatchScore: 72,
 }
 
-// Images Unsplash réelles et stables pour un look professionnel
+// Visuels à dominante ouest-africaine / africaine (Unsplash — hotlinks stables pour next/image).
+// Pour des assets maison ou Freepik, remplacer par des fichiers dans /public et des chemins relatifs.
 const itemImages: Record<ItemCategory, string[]> = {
   PHONE: [
-    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1639080494293-a6c409e3bb88?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1758874384553-b99bae0db3c8?w=800&auto=format&fit=crop',
   ],
   IDENTITY_PAPERS: [
-    'https://images.unsplash.com/photo-1586762522614-5c4673b8f85b?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1566996533071-2c578080c06e?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1759430954379-81c2c1d908ee?w=800&auto=format&fit=crop',
   ],
   KEYS: [
-    'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1609587415882-97552f39c6c2?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1734868419408-5dcf1cbe02a7?w=800&auto=format&fit=crop',
   ],
   LUGGAGE: [
-    'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1532968899863-5b52ef155913?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&auto=format&fit=crop',
   ],
   WALLET: [
-    'https://images.unsplash.com/photo-1627123424574-724758594e93?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1627123424574-724758594e93?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1765584829997-12ab011bb5b3?w=800&auto=format&fit=crop',
   ],
   ELECTRONICS: [
-    'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1449247613801-ab06418e2861?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1620829813573-7c9e1877706f?w=800&auto=format&fit=crop',
   ],
   JEWELRY: [
-    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1574362098421-38623a3466b5?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1590548784585-643d2b9f2925?w=800&auto=format&fit=crop',
   ],
   CLOTHING: [
-    'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1734868032501-448d1457dc38?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1773398972684-2ba88aa89499?w=800&auto=format&fit=crop',
   ],
   PETS: [
-    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1753685722939-6bda713c298d?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1633935280513-b298ced80f9b?w=800&auto=format&fit=crop',
   ],
   BOOKS: [
-    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1576089275954-40cd98bfcfdb?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&auto=format&fit=crop',
   ],
   OTHER: [
-    'https://images.unsplash.com/photo-1481349518771-2005b9565124?w=800&auto=format&fit=crop'
-  ]
+    'https://images.unsplash.com/photo-1695643875095-f5620748605d?w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1734255287995-7c09dbc99613?w=800&auto=format&fit=crop',
+  ],
 }
 
 const userAvatars = [
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1559783684-874488c5f42f?w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1562173650-f61426fbe683?w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1564541558234-ef406c118d0c?w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1559670057-fa7b45a1c253?w=200&auto=format&fit=crop',
 ]
 
 const createMockItem = (id: number, type: ItemType, category: ItemCategory, title: string, district: keyof typeof LOME_DISTRICTS): Item => ({

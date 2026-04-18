@@ -1,152 +1,248 @@
-// src/lib/api.ts
-import axios from 'axios'
-import {
-  AuthResponse,
-  Conversation,
-  CreateItemRequest,
-  DashboardStats,
+// Client HTTP aligné sur l'API CollectObjet (Spring Boot)
+import axios, { AxiosError } from 'axios'
+import { useAppStore } from '@/store/useAppStore'
+import type {
+  BackendAuthResponse,
+  BackendCategorie,
+  BackendObjet,
+  CommunauteStats,
+  SpringPage,
+  UploadUrlsPayload,
+} from '@/lib/backend-types'
+import { backendObjetToItem, itemTypeToBackend } from '@/lib/mappers'
+import type {
   Item,
   ItemStatus,
   ItemType,
   LoginRequest,
-  MatchResult,
-  Message,
-  Notification,
-  NotificationType,
-  PublicStats,
+  Pagination,
   RegisterRequest,
-  SearchRequest,
   SearchResponse,
-  SuggestionsResponse,
   User,
-  UserPublic,
-  UserStats
 } from '@/types'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1'
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8081/api'
 
-export const api = axios.create({ baseURL: BASE_URL })
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: { 'Content-Type': 'application/json' },
+})
 
-// Injecter le token JWT automatiquement
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
 
-// Refresh token si 401
 api.interceptors.response.use(
-  (res) => res,
-  async (error) => {
-    if (error.response?.status === 401) {
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
-          localStorage.setItem('token', data.token)
-          error.config.headers.Authorization = `Bearer ${data.token}`
-          return api(error.config)
-        } catch {
-          localStorage.removeItem('token')
-          localStorage.removeItem('refreshToken')
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login'
-          }
-        }
+  (response) => {
+    const d = response.data as {
+      success?: boolean
+      data?: unknown
+      message?: string
+    }
+    if (d && typeof d === 'object' && 'success' in d) {
+      if (d.success === false) {
+        return Promise.reject(new Error(d.message ?? 'Erreur serveur'))
+      }
+      if (d.success === true) {
+        response.data = d.data !== undefined ? d.data : d
       }
     }
-    return Promise.reject(error)
+    return response
+  },
+  (error: AxiosError<{ message?: string }>) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      useAppStore.getState().clearAuth()
+    }
+    const msg =
+      error.response?.data?.message ??
+      error.message ??
+      'Une erreur réseau est survenue'
+    return Promise.reject(new Error(msg))
   }
 )
 
 // ── Auth ──────────────────────────────────────────────────────────
-export const authAPI = {
-  register:       (data: RegisterRequest)        => api.post<AuthResponse>('/auth/register', data),
-  login:          (data: LoginRequest)           => api.post<AuthResponse>('/auth/login', data),
-  logout:         ()                             => api.post('/auth/logout'),
-  refresh:        (refreshToken: string)         => api.post('/auth/refresh', { refreshToken }),
-  forgotPassword: (email: string)                => api.post('/auth/forgot-password', { email }),
-  resetPassword:  (token: string, newPassword: string) =>
-                    api.post('/auth/reset-password', { token, newPassword }),
+
+export async function loginRequest(data: LoginRequest): Promise<BackendAuthResponse> {
+  const res = await api.post<BackendAuthResponse>('/auth/login', {
+    email: data.email,
+    password: data.password,
+  })
+  return res.data
 }
 
-// ── Users ─────────────────────────────────────────────────────────
-export const usersAPI = {
-  getMe:      ()                => api.get<User>('/users/me'),
-  updateMe:   (data: Partial<User>) => api.put<User>('/users/me', data),
-  getMyStats: ()                => api.get<UserStats>('/users/me/stats'),
-  getUser:    (id: number)      => api.get<UserPublic>(`/users/${id}`),
+export async function registerRequest(
+  payload: RegisterRequest & { username: string }
+): Promise<BackendAuthResponse> {
+  const res = await api.post<BackendAuthResponse>('/auth/register', {
+    username: payload.username,
+    email: payload.email,
+    password: payload.password,
+    telephone: payload.phone?.replace(/\s/g, '') || undefined,
+  })
+  return res.data
 }
 
-// ── Items ─────────────────────────────────────────────────────────
-export const itemsAPI = {
-  list:      (params?: Partial<SearchRequest>) => api.get<SearchResponse>('/items', { params }),
-  get:       (id: number)                      => api.get<Item>(`/items/${id}`),
-  create:    (data: FormData)                  => api.post<Item>('/items', data, {
-               headers: { 'Content-Type': 'multipart/form-data' } }),
-  update:    (id: number, data: Partial<CreateItemRequest>) => api.put<Item>(`/items/${id}`, data),
-  delete:    (id: number)                      => api.delete(`/items/${id}`),
-  resolve:   (id: number, message?: string)    => api.patch<Item>(`/items/${id}/resolve`, { message }),
-  getMyItems:(params?: { status?: ItemStatus; type?: ItemType }) =>
-               api.get<Item[]>('/items/user/me', { params }),
+export function authToUser(
+  a: BackendAuthResponse,
+  extras?: { city?: string }
+): User {
+  const city = extras?.city ?? 'Lomé'
+  return {
+    id: a.id,
+    name: a.username,
+    email: a.email,
+    phone: a.telephone ?? '',
+    city,
+    avatar: null,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    stats: {
+      totalItems: 0,
+      itemsFound: 0,
+      itemsReturned: 0,
+      activeItems: 0,
+      pendingMatches: 0,
+    },
+    role: a.role === 'ROLE_ADMIN' ? 'ADMIN' : 'USER',
+  }
 }
 
-// ── Matching ──────────────────────────────────────────────────────
-export const matchingAPI = {
-  forItem: (itemId: number, params?: { minScore?: number; limit?: number }) =>
-             api.get<{ sourceItem: Item; matches: MatchResult[]; total: number }>(
-               `/matches/for-item/${itemId}`, { params }),
+// ── Catégories ────────────────────────────────────────────────────
 
-  suggestions: (params?: { limit?: number; minScore?: number; onlyUnread?: boolean }) =>
-                 api.get<SuggestionsResponse>('/matches/suggestions', { params }),
-
-  newMatches: (params?: { since?: string; minScore?: number }) =>
-                api.get<{ matches: MatchResult[]; total: number; since: string }>(
-                  '/matches/new', { params }),
-
-  trigger:    (itemId: number) => api.post(`/matches/trigger/${itemId}`),
-  triggerAll: ()               => api.post('/matches/trigger-all'),
-
-  getScore:   (matchId: number) => api.get(`/matches/${matchId}/score`),
-  markRead:   (matchId: number) => api.patch(`/matches/${matchId}/read`),
-
-  unreadCount: () => api.get<{ count: number; highScoreCount: number }>('/matches/unread-count'),
+export async function fetchCategories(): Promise<BackendCategorie[]> {
+  const res = await api.get<BackendCategorie[]>('/categories')
+  return res.data
 }
 
-// ── Search ────────────────────────────────────────────────────────
-export const searchAPI = {
-  search: (data: SearchRequest)            => api.post<SearchResponse>('/search', data),
-  nearby: (lat: number, lng: number, params?: { radius?: number; type?: ItemType; limit?: number }) =>
-            api.get<Item[]>('/search/nearby', { params: { latitude: lat, longitude: lng, ...params } }),
+// ── Statistiques ─────────────────────────────────────────────────
+
+export async function fetchCommunauteStats(): Promise<CommunauteStats> {
+  const res = await api.get<CommunauteStats>('/stats/communaute')
+  return res.data
 }
 
-// ── Conversations & Messages ──────────────────────────────────────
-export const messagesAPI = {
-  getConversations:  (params?: { page?: number; limit?: number }) =>
-                       api.get<Conversation[]>('/conversations', { params }),
-  createConversation:(data: { itemId: number; matchId?: number }) =>
-                       api.post<Conversation>('/conversations', data),
-  getMessages:       (convId: number, params?: { page?: number; limit?: number }) =>
-                       api.get<Message[]>(`/conversations/${convId}/messages`, { params }),
-  sendMessage:       (convId: number, content: string) =>
-                       api.post<Message>(`/conversations/${convId}/messages`, { content }),
-  markRead:          (convId: number) => api.patch(`/conversations/${convId}/read`),
+// ── Objets ────────────────────────────────────────────────────────
+
+export interface ListObjetsParams {
+  page?: number
+  size?: number
+  type?: ItemType
+  statut?: ItemStatus
+  keyword?: string
+  categorieId?: number
 }
 
-// ── Notifications ─────────────────────────────────────────────────
-export const notificationsAPI = {
-  list:       (params?: { unreadOnly?: boolean; type?: NotificationType; page?: number; limit?: number }) =>
-                api.get<Notification[]>('/notifications', { params }),
-  markRead:   (id: number)  => api.patch(`/notifications/${id}/read`),
-  markAllRead:()            => api.patch('/notifications/read-all'),
-  unreadCount:()            => api.get<{ count: number; byType: Record<string, number> }>(
-                                '/notifications/unread-count'),
+function itemStatusToBackend(s: ItemStatus | undefined): string | undefined {
+  if (!s) return undefined
+  const m: Record<ItemStatus, string> = {
+    ACTIVE: 'ACTIF',
+    RESOLVED: 'RESOLU',
+    CLOSED: 'ARCHIVE',
+    EXPIRED: 'ARCHIVE',
+  }
+  return m[s]
 }
 
-// ── Stats ─────────────────────────────────────────────────────────
-export const statsAPI = {
-  dashboard: () => api.get<DashboardStats>('/stats/dashboard'),
-  public:    () => api.get<PublicStats>('/stats/public'),
+export async function fetchObjetsPage(
+  params: ListObjetsParams = {}
+): Promise<{ items: Item[]; pagination: Pagination }> {
+  const page = params.page ?? 0
+  const size = params.size ?? 48
+  const type =
+    params.type != null ? itemTypeToBackend(params.type) : undefined
+  const statut = itemStatusToBackend(params.statut)
+
+  const res = await api.get<SpringPage<BackendObjet>>('/objets/recherche', {
+    params: {
+      page,
+      size,
+      keyword: params.keyword || undefined,
+      categorieId: params.categorieId,
+      type,
+      statut,
+    },
+  })
+
+  const pageData = res.data
+  const content = pageData.content ?? []
+
+  const items: Item[] = content.map((o) => backendObjetToItem(o))
+  const pagination: Pagination = {
+    page: pageData.number ?? 0,
+    limit: pageData.size ?? size,
+    total: pageData.totalElements ?? items.length,
+    pages: pageData.totalPages ?? 1,
+  }
+
+  return { items, pagination }
+}
+
+export async function fetchObjetById(id: number): Promise<Item> {
+  const res = await api.get<BackendObjet>(`/objets/${id}`)
+  return backendObjetToItem(res.data)
+}
+
+export interface CreateObjetPayload {
+  titre: string
+  description: string
+  type: 'PERDU' | 'TROUVE'
+  localisation: string
+  dateEvenement: string
+  categorieId: number | null
+  photosUrls: string[]
+}
+
+export async function createObjet(
+  payload: CreateObjetPayload
+): Promise<Item> {
+  const res = await api.post<BackendObjet>('/objets', {
+    titre: payload.titre,
+    description: payload.description,
+    type: payload.type,
+    localisation: payload.localisation,
+    dateEvenement: payload.dateEvenement,
+    categorieId: payload.categorieId ?? undefined,
+    photosUrls: payload.photosUrls,
+  })
+  return backendObjetToItem(res.data)
+}
+
+export async function uploadImages(files: File[]): Promise<string[]> {
+  const form = new FormData()
+  files.forEach((f) => form.append('files', f))
+  const res = await api.post<UploadUrlsPayload>('/upload/images', form, {
+    transformRequest: [
+      (data, headers) => {
+        if (data instanceof FormData) {
+          delete headers['Content-Type']
+        }
+        return data
+      },
+    ],
+  })
+  return res.data.urls
+}
+
+export async function fetchMesObjets(): Promise<Item[]> {
+  const res = await api.get<BackendObjet[]>('/objets/mes-objets')
+  return res.data.map((o) => backendObjetToItem(o))
+}
+
+export async function fetchSearchResponse(
+  params: ListObjetsParams = {}
+): Promise<SearchResponse> {
+  const { items, pagination } = await fetchObjetsPage(params)
+  return {
+    items,
+    pagination,
+    filters: {},
+  }
 }

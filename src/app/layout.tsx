@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import 'leaflet/dist/leaflet.css';
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
+const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-heading",
 });
@@ -27,14 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${inter.variable} ${plusJakarta.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-neutral-50 selection:bg-primary/10 selection:text-primary pt-24">
-        <Navbar />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
-        <Toaster position="top-center" richColors />
+    <html lang="fr" suppressHydrationWarning className={`${inter.variable} ${outfit.variable} h-full overflow-x-hidden antialiased`}>
+      <body className="min-h-dvh flex min-w-0 flex-col overflow-x-hidden bg-background font-sans text-foreground antialiased selection:bg-primary/15 selection:text-primary-dark dark:selection:bg-primary/25 dark:selection:text-neutral-100">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
