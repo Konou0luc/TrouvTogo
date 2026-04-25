@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'          // Ajout
 import { Button } from '@/components/ui/button'
 import {
   Search,
@@ -26,6 +27,7 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import SkeletonCard from '@/components/ui/SkeletonCard'
 import type { Item } from '@/types'
+import { useAppStore } from '@/store/useAppStore'   // Ajout
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1734868198180-645349d586f4?w=1920&q=85'
@@ -53,6 +55,10 @@ export default function Home() {
   const [previewItems, setPreviewItems] = useState<Item[]>([])
   const [categories, setCategories] = useState<{ id: number; nom: string; description: string | null }[]>([])
   const [personnesActives, setPersonnesActives] = useState<number | null>(null)
+
+  // Récupération de l'utilisateur et du router
+  const user = useAppStore((state) => state.user)
+  const router = useRouter()
 
   useEffect(() => {
     let cancelled = false
@@ -93,6 +99,23 @@ export default function Home() {
     }
   }, [])
 
+  // Fonctions de redirection conditionnelle
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      router.push('/inscription')
+    }
+  }
+
+  const handleCreateAccount = () => {
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      router.push('/inscription')
+    }
+  }
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -120,7 +143,7 @@ export default function Home() {
           {loadError} — certaines sections peuvent être incomplètes.
         </div>
       )}
-      {/* Hero plein écran — composition type WeHeal (image + overlay, texte bas-gauche, flottants, scroll) */}
+      {/* Hero plein écran */}
       <section className="relative min-h-[100dvh] w-full min-w-0 max-w-[100vw] overflow-hidden">
         <Image
           src={HERO_IMAGE}
@@ -130,7 +153,6 @@ export default function Home() {
           className="object-cover object-[center_38%]"
           sizes="100vw"
         />
-        {/* Lisibilité : dégradé depuis le bas-gauche (comme la ref. WeHeal) */}
         <div className="absolute inset-0 bg-gradient-to-tr from-black/90 via-[#0c447c]/82 to-primary/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25" />
         <div
@@ -140,7 +162,6 @@ export default function Home() {
           }}
         />
 
-        {/* Indicateur scroll bas-centre */}
         <div className="pointer-events-none absolute bottom-8 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
           <span className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/50">Défiler</span>
           <div className="h-12 w-px bg-gradient-to-b from-white/70 to-transparent" />
@@ -188,14 +209,14 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-[18px] w-[18px]" strokeWidth={1.75} />
                 </Button>
               </Link>
-              <Link href="/inscription">
-                <Button
-                  size="lg"
-                  className="h-[52px] min-w-[220px] rounded-full border border-primary/90 bg-primary px-8 text-[15px] font-semibold text-white hover:bg-primary-dark"
-                >
-                  Commencer gratuitement
-                </Button>
-              </Link>
+              {/* Bouton "Commencer gratuitement" corrigé */}
+              <Button
+                size="lg"
+                onClick={handleGetStarted}
+                className="h-[52px] min-w-[220px] rounded-full border border-primary/90 bg-primary px-8 text-[15px] font-semibold text-white hover:bg-primary-dark"
+              >
+                {user ? 'Accéder au tableau de bord' : 'Commencer gratuitement'}
+              </Button>
             </motion.div>
 
             <motion.ul
@@ -211,7 +232,7 @@ export default function Home() {
             </motion.ul>
           </motion.div>
 
-          {/* Stats — intégrées au hero (vitré), sans carte blanche sur le dégradé */}
+          {/* Stats intégrées */}
           <div className="relative z-20 mx-auto mt-12 w-full min-w-0 max-w-[88rem] sm:mt-14">
             <div className="overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-none backdrop-blur-md dark:border-white/15 dark:bg-black/25">
               <div className="grid divide-y divide-white/15 md:grid-cols-3 md:divide-x md:divide-y-0 dark:divide-white/10">
@@ -322,7 +343,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Avantages — bandeau couleur primaire (clair) pour casser le gris */}
+      {/* Avantages */}
       <section
         id="pourquoi"
         className="scroll-mt-28 bg-primary py-20 text-primary-foreground dark:bg-[#12161c] dark:text-foreground lg:py-24"
@@ -430,7 +451,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Catégories — même fond que la page en clair, sans filets */}
+      {/* Catégories */}
       <section className="py-20 lg:py-24">
         <div className="mx-auto max-w-[88rem] px-4 sm:px-6 lg:px-10">
           <div className="mb-12 text-center">
@@ -481,7 +502,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA final */}
       <section className="mx-auto max-w-[88rem] px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
         <div className="overflow-hidden rounded-2xl border border-primary-dark/20 bg-primary px-8 py-14 text-center sm:px-14 dark:border-primary/50 dark:bg-primary/90">
           <h2 className="display-heading text-2xl text-white sm:text-3xl">Rejoindre TrouvTogo</h2>
@@ -489,14 +510,14 @@ export default function Home() {
             Créez un compte en une minute, ou parcourez les annonces sans engagement.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/inscription">
-              <Button
-                size="lg"
-                className="h-12 min-w-[200px] rounded-full border border-white/30 bg-white px-8 text-[15px] font-medium text-primary hover:bg-neutral-100"
-              >
-                Créer un compte
-              </Button>
-            </Link>
+            {/* Bouton "Créer un compte" corrigé */}
+            <Button
+              size="lg"
+              onClick={handleCreateAccount}
+              className="h-12 min-w-[200px] rounded-full border border-white/30 bg-white px-8 text-[15px] font-medium text-primary hover:bg-neutral-100"
+            >
+              {user ? 'Accéder au tableau de bord' : 'Créer un compte'}
+            </Button>
             <Link href="/annonces">
               <Button
                 size="lg"

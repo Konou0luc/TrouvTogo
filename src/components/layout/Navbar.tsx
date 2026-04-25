@@ -31,13 +31,13 @@ const marketingNav = [
   { name: 'Pourquoi TrouvTogo', href: '/#pourquoi' },
 ]
 
+// 🔽 MODIFICATION : on retire "Matchs" et "Messages" du menu pour les utilisateurs connectés
 const appNav = (user: { id: number } | null) =>
   user
     ? [
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Mes annonces', href: '/mes-annonces' },
-        { name: 'Matchs', href: '/matches' },
-        { name: 'Messages', href: '/messages' },
+        // "Matchs" et "Messages" sont supprimés
       ]
     : []
 
@@ -85,6 +85,15 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!isOpen) return
+    const onScroll = () => {
+      setIsOpen(false)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
@@ -95,13 +104,9 @@ export default function Navbar() {
   const linkClass = (active: boolean) =>
     cn(
       'whitespace-nowrap text-[15px] font-medium leading-snug transition-colors lg:text-base',
-      onHero
-        ? active
-          ? 'text-white'
-          : 'text-white/80 hover:text-white'
-        : active
-          ? 'text-foreground'
-          : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-foreground'
+      active
+        ? 'text-white dark:text-primary-dark'
+        : 'text-white/80 hover:text-white dark:text-neutral-700 dark:hover:text-neutral-900'
     )
 
   return (
@@ -109,12 +114,11 @@ export default function Navbar() {
       className={cn(
         'top-0 z-50 w-full transition-[background-color,border-color,backdrop-filter] duration-300',
         isHome
-          ? 'fixed'
-          : 'sticky border-b border-neutral-200/90 bg-[#fafaf8]/95 backdrop-blur-md supports-[backdrop-filter]:bg-[#fafaf8]/90 dark:border-neutral-800 dark:bg-neutral-950/90 dark:supports-[backdrop-filter]:bg-neutral-950/85',
-        isHome && onHero && 'border-transparent bg-transparent',
+          ? 'fixed bg-primary-dark dark:bg-white/95 border-b border-primary/20 dark:border-neutral-200/20'
+          : 'sticky border-b border-primary/20 dark:border-neutral-200/20 bg-primary-dark dark:bg-white/95',
         isHome &&
           scrolled &&
-          'border-neutral-200/90 bg-[#fafaf8]/95 backdrop-blur-md supports-[backdrop-filter]:bg-[#fafaf8]/90 dark:border-neutral-800 dark:bg-neutral-950/90 dark:supports-[backdrop-filter]:bg-neutral-950/85'
+          'bg-primary-dark dark:bg-white/95'
       )}
     >
       <div className="mx-auto flex min-h-[4.25rem] max-w-[90rem] items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-10">
@@ -122,21 +126,21 @@ export default function Navbar() {
           href="/"
           className={cn(
             'group shrink-0 font-heading text-[1.35rem] font-medium tracking-tight sm:text-[1.5rem] lg:text-[1.6rem]',
-            onHero ? 'text-white' : 'text-foreground'
+            'text-white dark:text-primary-dark'
           )}
         >
           <span>Trouv</span>
           <span
             className={cn(
               'transition-colors',
-              onHero ? 'text-white group-hover:text-white/90' : 'text-primary group-hover:text-primary-dark'
+              'text-white/90 group-hover:text-white dark:text-white/90 dark:group-hover:text-white'
             )}
           >
             Togo
           </span>
         </Link>
 
-        {/* Liens plats centrés — pas de conteneur « pilule » */}
+        {/* Liens plats centrés */}
         <nav className="hidden min-w-0 flex-1 justify-center md:flex">
           <ul className="flex max-w-full flex-wrap items-center justify-center gap-x-7 lg:gap-x-10 xl:gap-x-11">
             {centerLinks.map((link) => {
@@ -154,16 +158,14 @@ export default function Navbar() {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="hidden md:block">
-            <ThemeToggle hero={onHero} />
+            <ThemeToggle hero={true} />
           </div>
-          {/* Langue — discret, comme les refs. type WeHeal */}
+
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
                 'hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium outline-none transition-colors lg:inline-flex',
-                onHero
-                  ? 'text-white/85 hover:text-white'
-                  : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-foreground'
+                'text-white/85 hover:text-white dark:text-neutral-700 dark:hover:text-neutral-900'
               )}
             >
               <Globe className="h-[1.125rem] w-[1.125rem] shrink-0 opacity-90" strokeWidth={1.5} />
@@ -186,9 +188,7 @@ export default function Navbar() {
                   size="icon"
                   className={cn(
                     'relative h-11 w-11 rounded-full',
-                    onHero
-                      ? 'text-white/90 hover:bg-white/15 hover:text-white'
-                      : 'text-neutral-600 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-foreground'
+                    'text-white/90 hover:bg-white/15 hover:text-white dark:text-neutral-700 dark:hover:bg-black/10 dark:hover:text-neutral-900'
                   )}
                 >
                   <Bell className="h-[1.35rem] w-[1.35rem]" strokeWidth={1.75} />
@@ -196,7 +196,7 @@ export default function Navbar() {
                     <span
                       className={cn(
                         'absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger ring-2',
-                        onHero ? 'ring-white/30' : 'ring-[#fafaf8] dark:ring-neutral-950'
+                        'ring-white/30 dark:ring-white/20'
                       )}
                     />
                   )}
@@ -207,21 +207,19 @@ export default function Navbar() {
                 <DropdownMenuTrigger
                   className={cn(
                     'rounded-full outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/35',
-                    onHero ? 'ring-offset-transparent' : 'ring-offset-[#fafaf8]'
+                    'ring-offset-transparent dark:ring-offset-white/95'
                   )}
                 >
                   <span
                     className={cn(
                       'flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-1 transition-colors',
-                      onHero
-                        ? 'border-white/35 bg-white/10 hover:border-white/50'
-                        : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600'
+                      'border-white/35 bg-white/10 hover:border-white/50 dark:border-neutral-300/50 dark:bg-black/10 dark:hover:border-neutral-400'
                     )}
                   >
                     <span
                       className={cn(
                         'hidden max-w-[10rem] truncate text-[15px] font-medium lg:inline',
-                        onHero ? 'text-white' : 'text-foreground'
+                        'text-white dark:text-neutral-900'
                       )}
                     >
                       {user.name.split(' ')[0]}
@@ -265,9 +263,7 @@ export default function Navbar() {
                   size="default"
                   className={cn(
                     'h-11 rounded-full px-5 text-[15px] font-medium sm:px-6',
-                    onHero
-                      ? 'text-white/90 hover:bg-white/10 hover:text-white'
-                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-foreground'
+                      'text-white/90 hover:bg-white/10 hover:text-white dark:text-neutral-700 dark:hover:bg-black/10 dark:hover:text-neutral-900'
                   )}
                 >
                   Connexion
@@ -295,9 +291,7 @@ export default function Navbar() {
               onClick={() => setIsOpen((o) => !o)}
               className={cn(
                 'rounded-full',
-                onHero
-                  ? 'border-white/45 bg-white/10 text-white hover:bg-white/20'
-                  : 'border-neutral-200 dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-foreground'
+                'border-white/45 bg-white/10 text-white hover:bg-white/20 dark:border-neutral-400/50 dark:bg-black/15 dark:text-neutral-700 dark:hover:bg-black/25'
               )}
             >
               <Menu className="h-4 w-4" strokeWidth={1.75} />
@@ -307,7 +301,7 @@ export default function Navbar() {
               <div className="fixed inset-0 z-[100] md:hidden" role="presentation">
                 <button
                   type="button"
-                  className="absolute inset-0 bg-neutral-950/35 backdrop-blur-[3px] transition-opacity dark:bg-black/55"
+                  className="absolute inset-0 bg-neutral-950/85 backdrop-blur-[6px] transition-opacity dark:bg-black/85"
                   aria-label="Fermer le menu"
                   onClick={() => setIsOpen(false)}
                 />
@@ -316,13 +310,13 @@ export default function Navbar() {
                   role="dialog"
                   aria-modal="true"
                   aria-label="Navigation"
-                  className="pointer-events-auto absolute inset-x-3 top-[calc(4rem+env(safe-area-inset-top,0px))] bottom-[max(0.5rem,env(safe-area-inset-bottom,0px))] flex flex-col rounded-[1.75rem] border border-white/40 bg-white/[0.72] p-4 shadow-[0_28px_90px_-16px_rgba(15,23,42,0.35)] backdrop-blur-2xl dark:border-white/[0.12] dark:bg-neutral-950/[0.58] dark:shadow-black/50 sm:p-5"
+                  className="pointer-events-auto absolute inset-x-3 top-[calc(4rem+env(safe-area-inset-top,0px))] bottom-[max(0.5rem,env(safe-area-inset-bottom,0px))] flex flex-col rounded-[1.75rem] border border-primary/70 bg-primary text-white p-4 shadow-[0_28px_90px_-16px_rgba(15,23,42,0.4)] dark:border-white/[0.15] dark:bg-neutral-900 dark:text-foreground sm:p-5"
                 >
-                  <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-neutral-200/60 pb-3 dark:border-white/10">
-                    <p className="font-heading text-lg font-medium tracking-tight text-neutral-900 dark:text-white">
-                      Trouv<span className="text-primary">Togo</span>
+                  <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-white/30 pb-3 dark:border-white/20">
+                    <p className="font-heading text-lg font-medium tracking-tight text-white dark:text-white">
+                      Trouv<span className="text-white/90 dark:text-white/90">Togo</span>
                     </p>
-                    <span className="rounded-full bg-neutral-900/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500 dark:bg-white/10 dark:text-neutral-400">
+                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 dark:bg-white/15 dark:text-white/70">
                       Menu
                     </span>
                   </div>
@@ -338,8 +332,8 @@ export default function Navbar() {
                           className={cn(
                             'rounded-2xl px-3 py-2.5 text-[15px] font-medium transition-colors sm:py-3',
                             active
-                              ? 'bg-primary/12 text-primary dark:bg-primary/20'
-                              : 'text-neutral-700 hover:bg-neutral-900/[0.04] dark:text-neutral-200 dark:hover:bg-white/[0.06]'
+                              ? 'bg-white/25 text-white dark:bg-white/20 dark:text-white'
+                              : 'text-white/90 hover:bg-white/15 dark:text-white/80 dark:hover:bg-white/[0.12]'
                           )}
                         >
                           {link.name}
@@ -348,12 +342,12 @@ export default function Navbar() {
                     })}
                   </nav>
 
-                  <div className="mt-3 shrink-0 space-y-3 border-t border-neutral-200/70 pt-4 dark:border-white/10">
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/50 bg-white/50 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04] sm:px-4 sm:py-3">
-                      <span className="text-[13px] font-medium text-neutral-600 dark:text-neutral-300">
+                  <div className="mt-3 shrink-0 space-y-3 border-t border-white/30 pt-4 dark:border-white/20">
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/40 bg-white/15 px-3 py-2.5 dark:border-white/20 dark:bg-white/[0.08] sm:px-4 sm:py-3">
+                      <span className="text-[13px] font-medium text-white dark:text-white/80">
                         Thème
                       </span>
-                      <ThemeToggle hero={false} />
+                      <ThemeToggle hero={true} />
                     </div>
 
                     {!user && (
@@ -366,14 +360,14 @@ export default function Navbar() {
                         <Link
                           href="/login"
                           onClick={() => setIsOpen(false)}
-                          className="block rounded-2xl border border-neutral-200/90 bg-white/40 py-2.5 text-center text-[15px] font-medium text-neutral-700 backdrop-blur-sm dark:border-white/15 dark:bg-white/[0.04] dark:text-neutral-200 sm:py-3"
+                          className="block rounded-2xl border border-white/40 bg-white/20 py-2.5 text-center text-[15px] font-medium text-white dark:border-white/25 dark:bg-white/[0.12] dark:text-white sm:py-3"
                         >
                           Connexion
                         </Link>
                         <Link
                           href="/inscription"
                           onClick={() => setIsOpen(false)}
-                          className="block rounded-2xl border border-dashed border-neutral-300/90 py-2.5 text-center text-[15px] font-medium text-neutral-600 dark:border-neutral-600 dark:text-neutral-400 sm:py-3"
+                          className="block rounded-2xl border border-dashed border-white/40 py-2.5 text-center text-[15px] font-medium text-white dark:border-white/40 dark:text-white sm:py-3"
                         >
                           Créer un compte
                         </Link>
