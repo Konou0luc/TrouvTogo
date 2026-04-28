@@ -31,7 +31,6 @@ const marketingNav = [
   { name: 'Pourquoi TrouvTogo', href: '/#pourquoi' },
 ]
 
-// 🔽 MODIFICATION : on retire "Matchs" et "Messages" du menu pour les utilisateurs connectés
 const appNav = (user: { id: number } | null) =>
   user
     ? [
@@ -104,21 +103,14 @@ export default function Navbar() {
   const linkClass = (active: boolean) =>
     cn(
       'whitespace-nowrap text-[15px] font-medium leading-snug transition-colors lg:text-base',
-      active
-        ? 'text-white dark:text-primary-dark'
-        : 'text-white/80 hover:text-white dark:text-neutral-700 dark:hover:text-neutral-900'
+      active ? 'text-foreground' : 'text-foreground/90 hover:text-foreground'
     )
 
   return (
     <header
       className={cn(
-        'top-0 z-50 w-full transition-[background-color,border-color,backdrop-filter] duration-300',
-        isHome
-          ? 'fixed bg-primary-dark dark:bg-white/95 border-b border-primary/20 dark:border-neutral-200/20'
-          : 'sticky border-b border-primary/20 dark:border-neutral-200/20 bg-primary-dark dark:bg-white/95',
-        isHome &&
-          scrolled &&
-          'bg-primary-dark dark:bg-white/95'
+        'fixed top-0 z-50 w-full transition-[background-color,backdrop-filter] duration-300',
+        isHome && !scrolled ? 'bg-transparent' : 'bg-card backdrop-blur-sm'
       )}
     >
       <div className="mx-auto flex min-h-[4.25rem] max-w-[90rem] items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-10">
@@ -126,18 +118,11 @@ export default function Navbar() {
           href="/"
           className={cn(
             'group shrink-0 font-heading text-[1.35rem] font-medium tracking-tight sm:text-[1.5rem] lg:text-[1.6rem]',
-            'text-white dark:text-primary-dark'
+            'text-foreground'
           )}
         >
           <span>Trouv</span>
-          <span
-            className={cn(
-              'transition-colors',
-              'text-white/90 group-hover:text-white dark:text-white/90 dark:group-hover:text-white'
-            )}
-          >
-            Togo
-          </span>
+          <span className={cn('transition-colors text-primary group-hover:text-primary-dark')}>Togo</span>
         </Link>
 
         {/* Liens plats centrés */}
@@ -165,7 +150,7 @@ export default function Navbar() {
             <DropdownMenuTrigger
               className={cn(
                 'hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium outline-none transition-colors lg:inline-flex',
-                'text-white/85 hover:text-white dark:text-neutral-700 dark:hover:text-neutral-900'
+                'text-foreground hover:text-primary'
               )}
             >
               <Globe className="h-[1.125rem] w-[1.125rem] shrink-0 opacity-90" strokeWidth={1.5} />
@@ -174,7 +159,7 @@ export default function Navbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="min-w-[10rem] rounded-xl border border-neutral-200 bg-white p-1 dark:border-neutral-700 dark:bg-neutral-900"
+              className="min-w-[10rem] rounded-xl border border-border bg-popover p-1 text-foreground"
             >
               <DropdownMenuItem className="rounded-lg text-[15px]">Français</DropdownMenuItem>
             </DropdownMenuContent>
@@ -186,10 +171,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn(
-                    'relative h-11 w-11 rounded-full',
-                    'text-white/90 hover:bg-white/15 hover:text-white dark:text-neutral-700 dark:hover:bg-black/10 dark:hover:text-neutral-900'
-                  )}
+                  className={cn('relative h-11 w-11 rounded-full', 'text-foreground hover:bg-popover/60')}
                 >
                   <Bell className="h-[1.35rem] w-[1.35rem]" strokeWidth={1.75} />
                   {unreadNotifications > 0 && (
@@ -210,32 +192,18 @@ export default function Navbar() {
                     'ring-offset-transparent dark:ring-offset-white/95'
                   )}
                 >
-                  <span
-                    className={cn(
-                      'flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-1 transition-colors',
-                      'border-white/35 bg-white/10 hover:border-white/50 dark:border-neutral-300/50 dark:bg-black/10 dark:hover:border-neutral-400'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'hidden max-w-[10rem] truncate text-[15px] font-medium lg:inline',
-                        'text-white dark:text-neutral-900'
-                      )}
-                    >
+                  <span className={cn('flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-1 transition-colors', 'border-border bg-popover hover:border-primary')}>
+                    <span className={cn('hidden max-w-[10rem] truncate text-[15px] font-medium lg:inline', 'text-foreground')}>
                       {user.name.split(' ')[0]}
                     </span>
-                    <Avatar className="h-10 w-10 border border-neutral-100">
+                    <Avatar className="h-10 w-10 border border-border">
                       <AvatarImage src={user.avatar || ''} alt={user.name} />
-                      <AvatarFallback className="bg-primary text-[15px] font-medium text-white">
-                        {user.name.charAt(0)}
-                      </AvatarFallback>
+                      <AvatarFallback className="bg-primary text-[15px] font-medium text-white">{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </span>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="mt-2 w-56 rounded-xl border border-neutral-200 bg-white p-1.5 dark:border-neutral-700 dark:bg-neutral-900"
-                  align="end"
-                >
+
+                <DropdownMenuContent className="mt-2 w-56 rounded-xl border border-border bg-popover p-1.5 text-foreground" align="end">
                   <DropdownMenuItem className="cursor-pointer rounded-lg px-3 py-2.5 focus:bg-neutral-50">
                     <Link href="/dashboard" className="flex w-full items-center gap-2 text-[15px] font-medium">
                       <LayoutDashboard className="h-4 w-4 text-primary" strokeWidth={1.75} />
@@ -243,11 +211,8 @@ export default function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-neutral-100" />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer rounded-lg px-3 py-2.5 text-danger focus:bg-danger-light/30"
-                  >
-                    <span className="flex items-center gap-2 text-[15px] font-medium">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer rounded-lg px-3 py-2.5 focus:bg-danger-light/30">
+                    <span className="flex items-center gap-2 text-[15px] font-medium text-danger">
                       <LogOut className="h-4 w-4" strokeWidth={1.75} />
                       Déconnexion
                     </span>
@@ -258,22 +223,12 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" className="hidden sm:block">
-                <Button
-                  variant="ghost"
-                  size="default"
-                  className={cn(
-                    'h-11 rounded-full px-5 text-[15px] font-medium sm:px-6',
-                      'text-white/90 hover:bg-white/10 hover:text-white dark:text-neutral-700 dark:hover:bg-black/10 dark:hover:text-neutral-900'
-                  )}
-                >
+                <Button variant="ghost" size="default" className="h-11 rounded-full px-5 text-[15px] font-medium sm:px-6 text-foreground">
                   Connexion
                 </Button>
               </Link>
               <Link href="/annonces" className="hidden md:block">
-                <Button
-                  size="default"
-                  className="h-11 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.12em] sm:px-7 sm:text-[13px]"
-                >
+                <Button size="default" className="h-11 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.12em] sm:px-7 sm:text-[13px]">
                   Voir les annonces
                 </Button>
               </Link>

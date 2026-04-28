@@ -1,7 +1,8 @@
 // src/app/(app)/notifications/page.tsx
-'use client'
+"use client"
 
-import { MOCK_NOTIFICATIONS } from '@/lib/mockData'
+import { useEffect, useState } from 'react'
+import { fetchNotifications } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { 
@@ -18,6 +19,16 @@ import { fr } from 'date-fns/locale'
 import Link from 'next/link'
 
 export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState<any[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    fetchNotifications()
+      .then((n) => { if (mounted) setNotifications(n) })
+      .catch(() => setNotifications([]))
+    return () => { mounted = false }
+  }, [])
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'NEW_MATCH_HIGH': return { icon: Zap, color: 'text-accent', bg: 'bg-accent-light' }
@@ -41,12 +52,12 @@ export default function NotificationsPage() {
         </div>
 
         <div className="space-y-4">
-          {MOCK_NOTIFICATIONS.length > 0 ? (
-            MOCK_NOTIFICATIONS.map((notif) => {
+          {notifications.length > 0 ? (
+            notifications.map((notif) => {
               const { icon: Icon, color, bg } = getIcon(notif.type)
               return (
                 <Link key={notif.id} href={notif.actionUrl}>
-                  <div className={`mb-4 rounded-xl border bg-white p-5 transition-colors ${
+                  <div className={`mb-4 rounded-xl border border-border bg-card p-5 transition-colors ${
                     !notif.isRead ? 'border-primary/30 hover:border-primary/40' : 'border-neutral-200 hover:border-neutral-300'
                   }`}>
                     <div className="flex gap-4">
@@ -87,7 +98,7 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {MOCK_NOTIFICATIONS.length > 0 && (
+        {notifications.length > 0 && (
           <Button variant="ghost" className="w-full mt-8 text-neutral-400 hover:text-danger gap-2">
             <Trash2 className="h-4 w-4" />
             Effacer tout l'historique

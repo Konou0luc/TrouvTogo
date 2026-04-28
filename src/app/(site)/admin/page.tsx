@@ -15,7 +15,8 @@ import {
 import AdminStatsChart from '@/components/admin/AdminStatsChart'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MOCK_ITEMS } from '@/lib/mockData'
+import { useEffect, useState } from 'react'
+import { fetchObjetsPage } from '@/lib/api'
 import StatusBadge from '@/components/annonce/StatusBadge'
 
 export default function AdminPage() {
@@ -25,6 +26,21 @@ export default function AdminPage() {
     { label: 'Objets Retrouvés', value: '840', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Signalements', value: '12', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
   ]
+
+  const [previewItems, setPreviewItems] = useState<any[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    fetchObjetsPage({ page: 0, size: 5 })
+      .then((p) => {
+        if (!mounted) return
+        setPreviewItems(p.items)
+      })
+      .catch(() => setPreviewItems([]))
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   return (
     <div className="bg-neutral-50 min-h-screen">
@@ -89,7 +105,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y">
-                  {MOCK_ITEMS.slice(0, 5).map((item) => (
+                  {previewItems.map((item) => (
                     <div key={item.id} className="p-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
                       <div className="flex items-center gap-4 min-w-0">
                         <div className="h-10 w-10 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
@@ -97,7 +113,7 @@ export default function AdminPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-neutral-900 truncate">{item.title}</p>
-                          <p className="text-[10px] text-neutral-400 font-medium">Par {item.user.name} • {item.location.district}</p>
+                          <p className="text-[10px] text-neutral-400 font-medium">Par {item.user?.name ?? '—'} • {item.location?.district ?? '—'}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

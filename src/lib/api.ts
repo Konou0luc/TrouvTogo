@@ -19,6 +19,11 @@ import type {
   RegisterRequest,
   SearchResponse,
   User,
+  Notification,
+  Conversation,
+  Message,
+  MatchResult,
+  UserPublic,
 } from '@/types'
 
 export const API_BASE =
@@ -138,6 +143,7 @@ export interface ListObjetsParams {
   statut?: ItemStatus
   keyword?: string
   categorieId?: number
+  ownerId?: number
 }
 
 function itemStatusToBackend(s: ItemStatus | undefined): string | undefined {
@@ -168,6 +174,7 @@ export async function fetchObjetsPage(
       categorieId: params.categorieId,
       type,
       statut,
+      proprietaireId: (params as any).ownerId ?? undefined,
     },
   })
 
@@ -246,3 +253,71 @@ export async function fetchSearchResponse(
     filters: {},
   }
 }
+
+// ── Notifications / Conversations / Messages / Matches / Users ─────────────────
+
+export async function fetchNotifications(): Promise<Notification[]> {
+  try {
+    const res = await api.get<Notification[]>('/notifications')
+    return res.data
+  } catch (err) {
+    // Graceful fallback when backend endpoint is not available yet
+    return []
+  }
+}
+
+export async function fetchConversations(): Promise<Conversation[]> {
+  try {
+    const res = await api.get<Conversation[]>('/conversations')
+    return res.data
+  } catch (err) {
+    return []
+  }
+}
+
+export async function fetchConversationMessages(conversationId: number): Promise<Message[]> {
+  try {
+    const res = await api.get<Message[]>(`/conversations/${conversationId}/messages`)
+    return res.data
+  } catch (err) {
+    return []
+  }
+}
+
+export async function fetchMatchesForUser(userId?: number): Promise<MatchResult[]> {
+  try {
+    const res = await api.get<MatchResult[]>('/matches', {
+      params: { userId: userId ?? undefined },
+    })
+    return res.data
+  } catch (err) {
+    return []
+  }
+}
+
+export async function fetchMatchesByItem(itemId: number): Promise<MatchResult[]> {
+  try {
+    const res = await api.get<MatchResult[]>(`/objets/${itemId}/matches`)
+    return res.data
+  } catch (err) {
+    return []
+  }
+}
+
+export async function fetchUserPublic(id: number): Promise<UserPublic | null> {
+  try {
+    const res = await api.get<any>(`/users/${id}`)
+    const data = res.data
+    return {
+      id: data.id,
+      name: data.username ?? data.name ?? `Utilisateur ${id}`,
+      avatar: data.avatarUrl ?? null,
+      city: data.city ?? 'Lomé',
+      joinDate: data.createdAt ?? new Date().toISOString(),
+      reputationScore: data.reputationScore ?? 0,
+    }
+  } catch (err) {
+    return null
+  }
+}
+

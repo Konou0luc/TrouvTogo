@@ -12,18 +12,14 @@ export const LOME_DISTRICTS = {
   'Djidjolé':     { lat: 6.1678, lng: 1.2234 },
 }
 
+// Legacy mock stats — kept empty for now to avoid default data leaking into the UI.
 export const MOCK_STATS: PublicStats = {
-  totalItems: 1250,
-  resolvedItems: 840,
-  successRate: 67.2,
-  activeUsers: 3500,
-  topCategories: [
-    { category: 'PHONE', count: 450 },
-    { category: 'IDENTITY_PAPERS', count: 320 },
-    { category: 'KEYS', count: 180 },
-    { category: 'WALLET', count: 120 },
-  ],
-  averageMatchScore: 72,
+  totalItems: 0,
+  resolvedItems: 0,
+  successRate: 0,
+  activeUsers: 0,
+  topCategories: [],
+  averageMatchScore: 0,
 }
 
 // Visuels à dominante ouest-africaine / africaine (Unsplash — hotlinks stables pour next/image).
@@ -115,149 +111,13 @@ const createMockItem = (id: number, type: ItemType, category: ItemCategory, titl
   matchCount: id % 5,
 })
 
-export const MOCK_ITEMS: Item[] = [
-  createMockItem(1, 'LOST', 'PHONE', 'iPhone 13 Pro Bleu', 'Bè'),
-  createMockItem(2, 'FOUND', 'IDENTITY_PAPERS', 'CNI Togolaise - KOFFI Ama', 'Agoè'),
-  createMockItem(3, 'LOST', 'KEYS', 'Trousseau de clés Toyota', 'Tokoin'),
-  createMockItem(4, 'FOUND', 'LUGGAGE', 'Sac à dos noir HP', 'Adidogomé'),
-  createMockItem(5, 'LOST', 'WALLET', 'Portefeuille cuir marron', 'Djidjolé'),
-  createMockItem(6, 'FOUND', 'ELECTRONICS', 'Samsung Galaxy Buds', 'Hédzranawoé'),
-  createMockItem(7, 'LOST', 'JEWELRY', 'Bague en or', 'Kodjoviakopé'),
-  createMockItem(8, 'FOUND', 'PETS', 'Chien type Berger', 'Nyékonakpoè'),
-  createMockItem(9, 'LOST', 'CLOTHING', 'Veste bleue marine', 'Bè'),
-  createMockItem(10, 'FOUND', 'BOOKS', 'Livre de droit', 'Tokoin'),
-]
+// Empty array to ensure no default items are displayed in the UI.
+export const MOCK_ITEMS: Item[] = []
 
-export const MOCK_MATCHES: MatchResult[] = [
-  {
-    id: 1,
-    sourceItemId: 1,
-    targetItem: MOCK_ITEMS[1],
-    score: 85,
-    scoreDetails: {
-      category: { score: 100, weight: 30, weightedScore: 30, details: {} },
-      location: { score: 80, weight: 30, weightedScore: 24, details: {} },
-      keywords: { score: 70, weight: 20, weightedScore: 14, details: {} },
-      date: { score: 85, weight: 20, weightedScore: 17, details: {} },
-      typeBonus: 0,
-      total: 85,
-    },
-    matchedKeywords: ['iPhone', 'Bleu', 'Bè'],
-    distanceKm: 2.5,
-    isRead: false,
-    isNotified: true,
-    createdAt: new Date().toISOString(),
-    notifiedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    sourceItemId: 1,
-    targetItem: MOCK_ITEMS[3],
-    score: 45,
-    scoreDetails: {
-      category: { score: 50, weight: 30, weightedScore: 15, details: {} },
-      location: { score: 40, weight: 30, weightedScore: 12, details: {} },
-      keywords: { score: 40, weight: 20, weightedScore: 8, details: {} },
-      date: { score: 50, weight: 20, weightedScore: 10, details: {} },
-      typeBonus: 0,
-      total: 45,
-    },
-    matchedKeywords: ['Noir'],
-    distanceKm: 5.2,
-    isRead: true,
-    isNotified: true,
-    createdAt: new Date().toISOString(),
-    notifiedAt: new Date().toISOString(),
-  }
-]
+export const MOCK_MATCHES: MatchResult[] = []
 
-export const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: 1,
-    itemId: 1,
-    item: MOCK_ITEMS[0],
-    otherUserId: 2,
-    otherUser: {
-      id: 2,
-      name: 'Koffi Adidogomé',
-      avatar: userAvatars[0],
-      city: 'Lomé',
-      joinDate: '2024-02-15',
-      reputationScore: 88,
-    },
-    lastMessage: {
-      content: 'Bonjour, j\'ai peut-être retrouvé votre téléphone à Bè.',
-      createdAt: new Date().toISOString(),
-      isFromMe: false,
-    },
-    unreadCount: 1,
-    matchScore: 85,
-    updatedAt: new Date().toISOString(),
-  }
-]
+export const MOCK_CONVERSATIONS: Conversation[] = []
 
-export const MOCK_MESSAGES: Message[] = [
-  {
-    id: 1,
-    conversationId: 1,
-    senderId: 2,
-    receiverId: 1,
-    content: 'Bonjour, j\'ai peut-être retrouvé votre téléphone à Bè.',
-    isRead: false,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: 2,
-    conversationId: 1,
-    senderId: 1,
-    receiverId: 2,
-    content: 'Ah super ! Où exactement ?',
-    isRead: true,
-    createdAt: new Date(Date.now() - 1800000).toISOString(),
-  },
-  {
-    id: 3,
-    conversationId: 1,
-    senderId: 2,
-    receiverId: 1,
-    content: 'Près du marché, il était par terre.',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-  }
-]
+export const MOCK_MESSAGES: Message[] = []
 
-export const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: 1,
-    userId: 1,
-    type: 'NEW_MATCH_HIGH',
-    title: 'Nouveau match important !',
-    content: 'Une annonce pour un iPhone 13 correspond à 85% à la vôtre.',
-    data: { matchId: 1, itemId: 1, score: 85 },
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    actionUrl: '/matches',
-  },
-  {
-    id: 2,
-    userId: 1,
-    type: 'NEW_MESSAGE',
-    title: 'Nouveau message',
-    content: 'Koffi vous a envoyé un message concernant votre annonce.',
-    data: { conversationId: 1 },
-    isRead: false,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    actionUrl: '/messages/1',
-  },
-  {
-    id: 3,
-    userId: 1,
-    type: 'ITEM_RESOLVED',
-    title: 'Félicitations !',
-    content: 'Votre objet a été marqué comme retrouvé.',
-    data: { itemId: 3 },
-    isRead: true,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    actionUrl: '/annonces/3',
-  }
-]
+export const MOCK_NOTIFICATIONS: Notification[] = []

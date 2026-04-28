@@ -1,8 +1,8 @@
 // src/app/admin/moderation/page.tsx
-'use client'
+"use client"
 
-import { useState, useMemo } from 'react'
-import { MOCK_ITEMS } from '@/lib/mockData'
+import { useState, useMemo, useEffect } from 'react'
+import { fetchObjetsPage } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -42,29 +42,43 @@ export default function AdminModerationPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedItem, setSelectedItem] = useState<number | null>(null)
+  const [items, setItems] = useState<any[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    fetchObjetsPage({ page: 0, size: 50 })
+      .then((p) => {
+        if (!mounted) return
+        setItems(p.items)
+      })
+      .catch(() => setItems([]))
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   // Filter items for moderation
   const itemsToModerate = useMemo(() => {
-    let items = [...MOCK_ITEMS]
+    let filtered = [...items]
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      items = items.filter(item => 
-        item.title.toLowerCase().includes(query) || 
-        item.description.toLowerCase().includes(query) ||
-        item.user.name.toLowerCase().includes(query)
+      filtered = filtered.filter((item) =>
+        (item.title || '').toLowerCase().includes(query) ||
+        (item.description || '').toLowerCase().includes(query) ||
+        (item.user?.name || '').toLowerCase().includes(query)
       )
     }
 
     // For demo, simulate some items as "pending" or "reported"
     if (statusFilter === 'PENDING') {
-      items = items.slice(0, 3)
+      filtered = filtered.slice(0, 3)
     } else if (statusFilter === 'REPORTED') {
-      items = items.slice(3, 5)
+      filtered = filtered.slice(3, 5)
     }
 
-    return items
-  }, [searchQuery, statusFilter])
+    return filtered
+  }, [items, searchQuery, statusFilter])
 
   const stats = {
     pending: 8,
@@ -174,7 +188,7 @@ export default function AdminModerationPage() {
                     <div className="flex gap-4">
                       {/* Thumbnail */}
                       <div className="h-20 w-20 rounded-xl bg-neutral-100 shrink-0 overflow-hidden">
-                        {item.images[0] ? (
+                        {item.images?.[0] ? (
                           <img src={item.images[0]} alt={item.title} className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center">
@@ -247,9 +261,9 @@ export default function AdminModerationPage() {
                   <>
                     {/* Preview */}
                     <div className="aspect-video rounded-xl bg-neutral-100 overflow-hidden">
-                      {MOCK_ITEMS.find(i => i.id === selectedItem)?.images[0] ? (
+                      {items.find(i => i.id === selectedItem)?.images?.[0] ? (
                         <img 
-                          src={MOCK_ITEMS.find(i => i.id === selectedItem)?.images[0]} 
+                          src={items.find(i => i.id === selectedItem)?.images?.[0]} 
                           alt="Preview" 
                           className="h-full w-full object-cover" 
                         />
@@ -264,10 +278,10 @@ export default function AdminModerationPage() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="font-bold text-lg text-neutral-900">
-                          {MOCK_ITEMS.find(i => i.id === selectedItem)?.title}
+                          {items.find(i => i.id === selectedItem)?.title}
                         </h3>
                         <p className="text-sm text-neutral-500 mt-1">
-                          {MOCK_ITEMS.find(i => i.id === selectedItem)?.description.slice(0, 150)}...
+                          {items.find(i => i.id === selectedItem)?.description?.slice(0, 150)}...
                         </p>
                       </div>
 
@@ -275,25 +289,25 @@ export default function AdminModerationPage() {
                         <div>
                           <p className="text-xs text-neutral-400 uppercase font-bold">Type</p>
                           <p className="font-semibold">
-                            {MOCK_ITEMS.find(i => i.id === selectedItem)?.type === 'LOST' ? 'Perdu' : 'Trouvé'}
+                            {items.find(i => i.id === selectedItem)?.type === 'LOST' ? 'Perdu' : 'Trouvé'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-neutral-400 uppercase font-bold">Catégorie</p>
                           <p className="font-semibold">
-                            {MOCK_ITEMS.find(i => i.id === selectedItem)?.category}
+                            {items.find(i => i.id === selectedItem)?.category}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-neutral-400 uppercase font-bold">Lieu</p>
                           <p className="font-semibold">
-                            {MOCK_ITEMS.find(i => i.id === selectedItem)?.location.district}
+                            {items.find(i => i.id === selectedItem)?.location?.district}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-neutral-400 uppercase font-bold">Utilisateur</p>
                           <p className="font-semibold">
-                            {MOCK_ITEMS.find(i => i.id === selectedItem)?.user.name}
+                            {items.find(i => i.id === selectedItem)?.user?.name}
                           </p>
                         </div>
                       </div>

@@ -1,8 +1,9 @@
 // src/app/(public)/profil/[id]/page.tsx
-'use client'
+"use client"
 
 import { useParams } from 'next/navigation'
-import { MOCK_ITEMS, MOCK_STATS } from '@/lib/mockData'
+import { useEffect, useState } from 'react'
+import { fetchObjetsPage, fetchUserPublic, fetchCommunauteStats } from '@/lib/api'
 import { UserPublic } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,24 +25,52 @@ import { fr } from 'date-fns/locale'
 import AnnonceCard from '@/components/annonce/AnnonceCard'
 import { motion } from 'framer-motion'
 
-// Mock user data - in real app, this would come from API
-const MOCK_USER: UserPublic = {
-  id: 1,
-  name: 'Koffi Mensah',
-  avatar: null,
-  city: 'Lomé',
-  joinDate: '2024-01-15T00:00:00Z',
-  reputationScore: 92,
-}
-
 export default function ProfilePage() {
   const { id } = useParams()
-  
-  // In real app, fetch user data based on id
-  const user = MOCK_USER
-  const userItems = MOCK_ITEMS.filter(item => item.userId === Number(id))
-  const activeItems = userItems.filter(item => item.status === 'ACTIVE')
-  const resolvedItems = userItems.filter(item => item.status === 'RESOLVED')
+  const [user, setUser] = useState<UserPublic | null>(null)
+  const [items, setItems] = useState<any[]>([])
+  const [stats, setStats] = useState<any>(null)
+
+  useEffect(() => {
+    const userId = Number(id)
+    if (!userId) return
+
+    let mounted = true
+
+    fetchUserPublic(userId).then((u) => {
+      if (!mounted) return
+      if (u) setUser(u)
+    })
+
+    // Load public items for this user (search endpoint supports proprietaireId)
+    fetchObjetsPage({ ownerId: userId, size: 100 })
+      .then((p) => {
+        if (!mounted) return
+        setItems(p.items)
+      })
+      .catch(() => {
+        if (!mounted) return
+        setItems([])
+      })
+
+    // community stats (for the small stat card)
+    fetchCommunauteStats()
+      .then((s) => {
+        if (!mounted) return
+        setStats(s)
+      })
+      .catch(() => setStats(null))
+
+    return () => {
+      mounted = false
+    }
+  }, [id])
+
+  const userItems = items
+  const activeItems = userItems.filter((it) => it.status === 'ACTIVE')
+  const resolvedItems = userItems.filter((it) => it.status === 'RESOLVED')
+
+  if (!user) return null
 
   return (
     <div className="bg-neutral-50 min-h-screen pb-20">
@@ -53,7 +82,7 @@ export default function ProfilePage() {
         </Link>
 
         {/* Profile Header */}
-        <div className="mb-10 rounded-2xl border border-neutral-200 bg-white p-8 md:p-12">
+        <div className="mb-10 rounded-2xl border border-neutral-200 bg-card p-8 md:p-12">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Avatar */}
             <div className="relative">
@@ -121,7 +150,7 @@ export default function ProfilePage() {
           {[
             { label: 'Annonces actives', value: activeItems.length, icon: Search, color: 'text-primary' },
             { label: 'Objets retrouvés', value: resolvedItems.length, icon: CheckCircle2, color: 'text-secondary' },
-            { label: 'Membres de la communauté', value: MOCK_STATS.activeUsers, icon: Users, color: 'text-accent' },
+            { label: 'Membres de la communauté', value: stats?.personnesActives ?? '-', icon: Users, color: 'text-accent' },
             { label: 'Score de réputation', value: `${user.reputationScore}%`, icon: Award, color: 'text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="border border-neutral-200">

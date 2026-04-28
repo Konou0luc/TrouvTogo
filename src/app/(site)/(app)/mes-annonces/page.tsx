@@ -1,9 +1,9 @@
 // src/app/(app)/mes-annonces/page.tsx
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { MOCK_ITEMS } from '@/lib/mockData'
+import { fetchMesObjets } from '@/lib/api'
 import AnnonceCard from '@/components/annonce/AnnonceCard'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,42 +40,55 @@ export default function MesAnnoncesPage() {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [typeFilter, setTypeFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [items, setItems] = useState<any[]>([])
 
-  // Filtrer les items de l'utilisateur
+  useEffect(() => {
+    if (!user) return
+    let mounted = true
+    setIsLoading(true)
+    fetchMesObjets()
+      .then((res) => {
+        if (!mounted) return
+        setItems(res)
+      })
+      .catch(() => setItems([]))
+      .finally(() => setIsLoading(false))
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  // Filtrer les items de l'utilisateur (données chargées depuis l'API)
   const myItems = useMemo(() => {
     if (!user) return []
-    
-    let items = MOCK_ITEMS.filter(item => item.userId === user.id)
 
-    // Filtre par recherche
+    let filtered = items.filter((item) => item.userId === user.id)
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      items = items.filter(item => 
-        item.title.toLowerCase().includes(query) || 
-        item.description.toLowerCase().includes(query)
+      filtered = filtered.filter((item) =>
+        item.title.toLowerCase().includes(query) || item.description.toLowerCase().includes(query)
       )
     }
 
-    // Filtre par statut
     if (statusFilter !== 'ALL') {
-      items = items.filter(item => item.status === statusFilter)
+      filtered = filtered.filter((item) => item.status === statusFilter)
     }
 
-    // Filtre par type
     if (typeFilter !== 'ALL') {
-      items = items.filter(item => item.type === typeFilter)
+      filtered = filtered.filter((item) => item.type === typeFilter)
     }
 
-    return items
-  }, [user, searchQuery, statusFilter, typeFilter])
+    return filtered
+  }, [user, items, searchQuery, statusFilter, typeFilter])
 
   // Stats
   const stats = useMemo(() => ({
-    total: MOCK_ITEMS.filter(i => i.userId === user?.id).length,
-    active: MOCK_ITEMS.filter(i => i.userId === user?.id && i.status === 'ACTIVE').length,
-    resolved: MOCK_ITEMS.filter(i => i.userId === user?.id && i.status === 'RESOLVED').length,
-  }), [user])
+    total: items.filter((i) => i.userId === user?.id).length,
+    active: items.filter((i) => i.userId === user?.id && i.status === 'ACTIVE').length,
+    resolved: items.filter((i) => i.userId === user?.id && i.status === 'RESOLVED').length,
+  }), [user, items])
 
   if (!user) {
     return (
@@ -89,16 +102,16 @@ export default function MesAnnoncesPage() {
   }
 
   return (
-    <div className="bg-neutral-50 min-h-screen pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900 flex items-center gap-3">
-              <FileText className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <FileText className="h-8 w-8 text-foreground" />
               Mes annonces
             </h1>
-            <p className="text-neutral-500 mt-1">Gérez vos signalements d'objets perdus et trouvés.</p>
+            <p className="text-foreground mt-1">Gérez vos signalements d'objets perdus et trouvés.</p>
           </div>
           <Link href="/declarer/perdu">
             <Button className="bg-primary hover:bg-primary-dark font-bold h-12 px-6 rounded-xl gap-2">
@@ -111,34 +124,34 @@ export default function MesAnnoncesPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total', value: stats.total, color: 'text-primary', bg: 'bg-primary/5' },
-            { label: 'Actives', value: stats.active, color: 'text-accent', bg: 'bg-accent/5' },
-            { label: 'Résolues', value: stats.resolved, color: 'text-secondary', bg: 'bg-secondary/5' },
+            { label: 'Total', value: stats.total, color: 'text-primary' },
+            { label: 'Actives', value: stats.active, color: 'text-accent' },
+            { label: 'Résolues', value: stats.resolved, color: 'text-secondary' },
           ].map((stat, i) => (
-            <div key={i} className={`${stat.bg} rounded-2xl p-6`}>
-              <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">{stat.label}</p>
-              <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
+            <div key={i} className="rounded-2xl p-6 bg-card border border-border">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{stat.label}</p>
+              <p className={`text-3xl font-black ${stat.color} text-foreground`}>{stat.value}</p>
             </div>
           ))}
         </div>
 
         {/* Filters */}
-        <div className="mb-8 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="mb-8 rounded-xl border border-border bg-card p-4">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
+              <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
               <input
                 type="text"
                 placeholder="Rechercher dans mes annonces..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-neutral-50 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full pl-12 pr-4 py-3 bg-popover border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
               />
             </div>
             
             <div className="flex gap-3">
               <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
-                <SelectTrigger className="w-[160px] h-12 bg-neutral-50 border-none rounded-xl font-semibold">
+                <SelectTrigger className="w-[160px] h-12 bg-popover border-none rounded-xl font-semibold">
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -151,7 +164,7 @@ export default function MesAnnoncesPage() {
               </Select>
 
               <Select value={typeFilter} onValueChange={(v) => v && setTypeFilter(v)}>
-                <SelectTrigger className="w-[140px] h-12 bg-neutral-50 border-none rounded-xl font-semibold">
+                <SelectTrigger className="w-[140px] h-12 bg-popover border-none rounded-xl font-semibold">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -203,7 +216,7 @@ export default function MesAnnoncesPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-3xl p-20 text-center border border-neutral-100">
+          <div className="bg-card rounded-3xl p-20 text-center border border-border">
             <div className="h-20 w-20 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-6">
               <FileText className="h-10 w-10 text-neutral-300" />
             </div>

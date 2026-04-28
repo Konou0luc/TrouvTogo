@@ -138,6 +138,13 @@
   }
 }
 
+/* Ensure default page text and background follow semantic tokens so
+   dark mode renders text (foreground) as light by default. */
+html, body, #__next {
+  color: var(--foreground);
+  background-color: var(--background);
+}
+
 @layer utilities {
   .glass {
     @apply border border-white/20 bg-white/80 backdrop-blur-md dark:border-neutral-600/40 dark:bg-neutral-900/75;
