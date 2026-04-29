@@ -7,6 +7,7 @@ import { fetchObjetsPage, changeObjetStatus, fetchAdminUnresolvedSignalements, r
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import AdminButton from '@/components/admin/AdminButton'
+import ChangeObjetStatusConfirmModal from '@/components/admin/ChangeObjetStatusConfirmModal'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
@@ -47,6 +48,9 @@ export default function AdminModerationPage() {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedItem, setSelectedItem] = useState<number | null>(null)
   const [items, setItems] = useState<any[]>([])
+  const [confirmStatusOpen, setConfirmStatusOpen] = useState(false)
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ itemId: number; status: 'ACTIVE' | 'RESOLVED' | 'CLOSED' } | null>(null)
+  const [changingStatus, setChangingStatus] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -78,21 +82,28 @@ export default function AdminModerationPage() {
     setActionLoading((s) => ({ ...s, [id]: v }))
   }, [])
 
-  const handleChangeStatus = useCallback(async (id: number, newStatus: 'ACTIVE' | 'RESOLVED' | 'CLOSED') => {
-    setLoadingFor(id, true)
+  const handleChangeStatus = useCallback((id: number, newStatus: 'ACTIVE' | 'RESOLVED' | 'CLOSED') => {
+    setPendingStatusChange({ itemId: id, status: newStatus })
+    setConfirmStatusOpen(true)
+  }, [])
+
+  const confirmStatusChange = useCallback(async () => {
+    if (!pendingStatusChange) return
+    setChangingStatus(true)
+    const { itemId, status: newStatus } = pendingStatusChange
     try {
-      const updated = await changeObjetStatus(id, newStatus as any)
-      setItems((prev) => prev.map((it) => (it.id === id ? updated : it)))
-      setSelectedItem(id)
+      const updated = await changeObjetStatus(itemId, newStatus as any)
+      setItems((prev) => prev.map((it) => (it.id === itemId ? updated : it)))
+      setSelectedItem(itemId)
       toast.success('Statut mis à jour')
 
       // Resolve any open reports for this objet (admin action)
       try {
         const reports = await fetchAdminUnresolvedSignalements()
-        const related = reports.filter((r) => r.objetId === id)
+        const related = reports.filter((r) => r.objetId === itemId)
         if (related.length > 0) {
           await Promise.all(related.map((r) => resolveSignalement(r.id)))
-          setReportedIds((prev) => prev.filter((x) => x !== id))
+          setReportedIds((prev) => prev.filter((x) => x !== itemId))
           toast.success('Signalements liés résolus')
         }
       } catch (err) {
@@ -104,9 +115,11 @@ export default function AdminModerationPage() {
       console.error('Failed to change status', err)
       toast.error('Erreur lors de la mise à jour du statut')
     } finally {
-      setLoadingFor(id, false)
+      setChangingStatus(false)
+      setConfirmStatusOpen(false)
+      setPendingStatusChange(null)
     }
-  }, [setLoadingFor])
+  }, [pendingStatusChange])
 
   useEffect(() => {
     let mounted = true

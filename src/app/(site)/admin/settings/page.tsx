@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Breadcrumb from '@/components/layout/Breadcrumb'
 import { Bell, Lock, Database, FileText, AlertTriangle } from 'lucide-react'
-import { useToast } from 'sonner'
+import { toast } from 'sonner'
 
 export default function AdminSettingsPage() {
-  const { toast } = useToast()
   const [settings, setSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,

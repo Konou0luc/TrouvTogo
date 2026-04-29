@@ -7,6 +7,7 @@ import { fetchAdminUnresolvedSignalements, resolveSignalement } from '@/lib/api'
 import { BackendSignalement } from '@/lib/backend-types'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import AdminButton from '@/components/admin/AdminButton'
+import ResolveSignalementConfirmModal from '@/components/admin/ResolveSignalementConfirmModal'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Eye, User, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
@@ -17,7 +18,9 @@ import Breadcrumb from '@/components/layout/Breadcrumb'
 export default function AdminSignalementsPage() {
   const [reports, setReports] = useState<BackendSignalement[]>([])
   const [loading, setLoading] = useState(false)
-  const [resolvingIds, setResolvingIds] = useState<Record<number, boolean>>({})
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [reportToResolve, setReportToResolve] = useState<BackendSignalement | null>(null)
+  const [resolving, setResolving] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -39,23 +42,27 @@ export default function AdminSignalementsPage() {
     }
   }, [])
 
-  const setResolvingFor = useCallback((id: number, v: boolean) => {
-    setResolvingIds((s) => ({ ...s, [id]: v }))
+  const openConfirm = useCallback((report: BackendSignalement) => {
+    setReportToResolve(report)
+    setConfirmOpen(true)
   }, [])
 
-  const handleResolve = useCallback(async (id: number) => {
-    setResolvingFor(id, true)
+  const confirmResolve = async () => {
+    if (!reportToResolve) return
+    setResolving(true)
     try {
-      await resolveSignalement(id)
-      setReports((prev) => prev.filter((r) => r.id !== id))
+      await resolveSignalement(reportToResolve.id)
+      setReports((prev) => prev.filter((r) => r.id !== reportToResolve.id))
       toast.success('Signalement résolu')
+      setConfirmOpen(false)
+      setReportToResolve(null)
     } catch (err) {
       console.error('Failed to resolve report', err)
       toast.error('Erreur lors de la résolution du signalement')
     } finally {
-      setResolvingFor(id, false)
+      setResolving(false)
     }
-  }, [setResolvingFor])
+  }
 
   return (
     <div className="container py-6">
@@ -97,9 +104,9 @@ export default function AdminSignalementsPage() {
                   </Link>
                 </div>
                 <div className="flex items-center gap-2">
-                  <AdminButton size="sm" className="bg-secondary hover:bg-secondary-dark gap-2" onClick={() => handleResolve(report.id)} disabled={!!resolvingIds[report.id]}>
+                  <AdminButton size="sm" className="bg-secondary hover:bg-secondary-dark gap-2" onClick={() => openConfirm(report)}>
                     <CheckCircle2 className="h-4 w-4" />
-                    {resolvingIds[report.id] ? '...' : 'Résoudre'}
+                    Résoudre
                   </AdminButton>
                 </div>
               </CardContent>
@@ -107,6 +114,14 @@ export default function AdminSignalementsPage() {
           ))
         )}
       </div>
+
+      <ResolveSignalementConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={confirmResolve}
+        loading={resolving}
+        titre={reportToResolve?.objetTitre}
+      />
     </div>
   )
 }

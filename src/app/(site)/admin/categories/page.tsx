@@ -1,38 +1,27 @@
 "use client"
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import AdminButton from '@/components/admin/AdminButton'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
 import { PlusCircle, Edit, Trash, Loader2, Search as SearchIcon, Eye } from 'lucide-react'
-import { fetchCategories, createCategory, updateCategory, deleteCategory, fetchObjetsPage } from '@/lib/api'
+import { fetchCategories, deleteCategory, fetchObjetsPage } from '@/lib/api'
 import type { BackendCategorie } from '@/lib/backend-types'
 import { toast } from 'sonner'
-import CategoryDetailsModal from '@/components/admin/CategoryDetailsModal'
+import DeleteCategoryConfirmModal from '@/components/admin/DeleteCategoryConfirmModal'
 import Breadcrumb from '@/components/layout/Breadcrumb'
 
 export default function AdminCategoriesPage() {
+  const router = useRouter()
   const [categories, setCategories] = useState<BackendCategorie[]>([])
   const [loading, setLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [editing, setEditing] = useState<BackendCategorie | null>(null)
-  const [nom, setNom] = useState('')
-  const [description, setDescription] = useState('')
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
-  const [detailsCategory, setDetailsCategory] = useState<BackendCategorie | null>(null)
-  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<BackendCategorie | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -51,55 +40,35 @@ export default function AdminCategoriesPage() {
   }, [])
 
   const openCreate = () => {
-    setEditing(null)
-    setNom('')
-    setDescription('')
-    setIsOpen(true)
+    router.push('/admin/categories/nouvelle')
   }
 
   const openEdit = (c: BackendCategorie) => {
-    setEditing(c)
-    setNom(c.nom)
-    setDescription(c.description ?? '')
-    setIsOpen(true)
+    router.push(`/admin/categories/${c.id}`)
   }
 
   const openDetails = (c: BackendCategorie) => {
-    setDetailsCategory(c)
-    setDetailsOpen(true)
+    router.push(`/admin/categories/details/${c.id}`)
   }
 
-  const handleSave = async () => {
-    if (!nom.trim()) {
-      toast.error('Le nom est requis')
-      return
-    }
-    setSaving(true)
+  const handleDelete = async (c: BackendCategorie) => {
+    setCategoryToDelete(c)
+    setDeleteConfirmOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return
+    setDeleting(true)
     try {
-      if (editing) {
-        await updateCategory(editing.id, { nom: nom.trim(), description })
-        toast.success('Catégorie modifiée')
-      } else {
-        await createCategory({ nom: nom.trim(), description })
-        toast.success('Catégorie créée')
-      }
-      setIsOpen(false)
+      await deleteCategory(categoryToDelete.id)
+      toast.success('Catégorie supprimée')
+      setDeleteConfirmOpen(false)
+      setCategoryToDelete(null)
       await load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur')
     } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (c: BackendCategorie) => {
-    if (!confirm(`Supprimer la catégorie "${c.nom}" ?`)) return
-    try {
-      await deleteCategory(c.id)
-      toast.success('Catégorie supprimée')
-      await load()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur')
+      setDeleting(false)
     }
   }
 
@@ -218,26 +187,13 @@ export default function AdminCategoriesPage() {
           </CardContent>
         </Card>
 
-        <CategoryDetailsModal open={detailsOpen} category={detailsCategory} onOpenChange={setDetailsOpen} onEdit={(c) => { setIsOpen(true); setEditing(c); setDetailsOpen(false) }} onDelete={async (c) => { setDetailsOpen(false); await handleDelete(c) }} />
-
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editing ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</DialogTitle>
-              <DialogDescription>{editing ? `Modifier ${editing?.nom ?? ''}` : 'Créez une nouvelle catégorie'}</DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 mt-2">
-              <Input value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Nom (ex: Téléphones)" />
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" />
-            </div>
-
-            <DialogFooter>
-              <AdminButton variant="outline" onClick={() => setIsOpen(false)}>Annuler</AdminButton>
-              <AdminButton onClick={handleSave} disabled={saving}>{saving ? 'Enregistrement...' : editing ? 'Sauvegarder' : 'Créer'}</AdminButton>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <DeleteCategoryConfirmModal 
+          open={deleteConfirmOpen}
+          category={categoryToDelete}
+          onOpenChange={setDeleteConfirmOpen}
+          onConfirm={confirmDelete}
+          loading={deleting}
+        />
       </div>
     </div>
   )
