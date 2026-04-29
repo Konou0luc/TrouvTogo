@@ -44,8 +44,9 @@ export default function LoginPage() {
       const params = new URLSearchParams(
         typeof window !== 'undefined' ? window.location.search : ''
       )
-      const dest = params.get('redirect')
-      router.push(dest && dest.startsWith('/') ? dest : '/')
+      const redirectParam = params.get('redirect')
+      const defaultDest = user.role === 'ADMIN' ? '/admin/dashboard' : '/'
+      router.push(redirectParam && redirectParam.startsWith('/') ? redirectParam : defaultDest)
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : 'Erreur de connexion. Vérifiez vos identifiants.'

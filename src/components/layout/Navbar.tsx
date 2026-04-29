@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,8 +11,11 @@ import {
   LayoutDashboard,
   Globe,
   ChevronDown,
+  User as UserIcon,
+  Settings,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import type { User } from '@/types'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,14 +34,26 @@ const marketingNav = [
   { name: 'Pourquoi TrouvTogo', href: '/#pourquoi' },
 ]
 
-const appNav = (user: { id: number } | null) =>
-  user
-    ? [
-        { name: 'Dashboard', href: '/dashboard' },
-        { name: 'Mes annonces', href: '/mes-annonces' },
-        // "Matchs" et "Messages" sont supprimés
-      ]
-    : []
+const appNav = (user: User | null) => {
+  if (!user) return []
+  if (user.role === 'ADMIN') {
+    return [
+      { name: 'Dashboard', href: '/admin/dashboard' },
+      { name: 'Modération', href: '/admin/moderation' },
+      { name: 'Catégories', href: '/admin/categories' },
+    ]
+  }
+  return [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Mes annonces', href: '/mes-annonces' },
+  ]
+}
+
+const getNavLinks = (user: User | null, isHome: boolean) => {
+  if (!user) return isHome ? [...marketingNav, ...mainNav] : [mainNav[0]]
+  if (user.role === 'ADMIN') return appNav(user)
+  return appNav(user)
+}
 
 function isActive(pathname: string, href: string) {
   if (href.includes('#')) {
@@ -52,13 +67,15 @@ function isActive(pathname: string, href: string) {
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, clearAuth, unreadNotifications } = useAppStore()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   const isHome = pathname === '/'
-  const centerLinks = [...marketingNav, ...mainNav, ...appNav(user)]
+  const centerLinks = getNavLinks(user, isHome)
   const onHero = isHome && !scrolled
+  const isAdmin = user?.role === 'ADMIN'
 
   useEffect(() => {
     if (!isHome) return
@@ -84,9 +101,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!isOpen) return
-    const onScroll = () => {
-      setIsOpen(false)
-    }
+    const onScroll = () => setIsOpen(false)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [isOpen])
@@ -143,47 +158,51 @@ export default function Navbar() {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="hidden md:block">
-            <ThemeToggle hero={true} />
+            <ThemeToggle hero={onHero} />
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                'hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium outline-none transition-colors lg:inline-flex',
-                'text-foreground hover:text-primary'
-              )}
-            >
-              <Globe className="h-[1.125rem] w-[1.125rem] shrink-0 opacity-90" strokeWidth={1.5} />
-              <span className="hidden sm:inline">Français</span>
-              <ChevronDown className="h-4 w-4 opacity-70" strokeWidth={2} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="min-w-[10rem] rounded-xl border border-border bg-popover p-1 text-foreground"
-            >
-              <DropdownMenuItem className="rounded-lg text-[15px]">Français</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cn(
+                  'hidden items-center gap-2 rounded-lg px-2.5 py-2 text-[15px] font-medium outline-none transition-colors lg:inline-flex',
+                  'text-foreground hover:text-primary'
+                )}
+              >
+                <Globe className="h-[1.125rem] w-[1.125rem] shrink-0 opacity-90" strokeWidth={1.5} />
+                <span className="hidden sm:inline">Français</span>
+                <ChevronDown className="h-4 w-4 opacity-70" strokeWidth={2} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="min-w-[10rem] rounded-xl border border-border bg-popover p-1 text-foreground"
+              >
+                <DropdownMenuItem className="rounded-lg text-[15px]">Français</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {user ? (
             <>
-              <Link href="/notifications" className="hidden sm:block">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn('relative h-11 w-11 rounded-full', 'text-foreground hover:bg-popover/60')}
-                >
-                  <Bell className="h-[1.35rem] w-[1.35rem]" strokeWidth={1.75} />
-                  {unreadNotifications > 0 && (
-                    <span
-                      className={cn(
-                        'absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger ring-2',
-                        'ring-white/30 dark:ring-white/20'
-                      )}
-                    />
-                  )}
-                </Button>
-              </Link>
+              {!isAdmin && (
+                <Link href="/notifications" className="hidden sm:block">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('relative h-11 w-11 rounded-full', 'text-foreground hover:bg-popover/60')}
+                  >
+                    <Bell className="h-[1.35rem] w-[1.35rem]" strokeWidth={1.75} />
+                    {unreadNotifications > 0 && (
+                      <span
+                        className={cn(
+                          'absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger ring-2',
+                          'ring-white/30 dark:ring-white/20'
+                        )}
+                      />
+                    )}
+                  </Button>
+                </Link>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -204,18 +223,41 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="mt-2 w-56 rounded-xl border border-border bg-popover p-1.5 text-foreground" align="end">
-                  <DropdownMenuItem className="cursor-pointer rounded-lg px-3 py-2.5 focus:bg-neutral-50">
-                    <Link href="/dashboard" className="flex w-full items-center gap-2 text-[15px] font-medium">
-                      <LayoutDashboard className="h-4 w-4 text-primary" strokeWidth={1.75} />
-                      Dashboard
-                    </Link>
+                  <DropdownMenuItem
+                    onClick={() => router.push(isAdmin ? '/admin/dashboard' : '/dashboard')}
+                    className="flex items-center gap-2 text-[15px] font-medium px-3 py-2.5 cursor-pointer rounded-lg"
+                  >
+                    <LayoutDashboard className="h-4 w-4 text-primary" strokeWidth={1.75} />
+                    Dashboard
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-neutral-100" />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer rounded-lg px-3 py-2.5 focus:bg-danger-light/30">
-                    <span className="flex items-center gap-2 text-[15px] font-medium text-danger">
-                      <LogOut className="h-4 w-4" strokeWidth={1.75} />
-                      Déconnexion
-                    </span>
+
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator className="bg-border dark:bg-neutral-700" />
+                      <DropdownMenuItem
+                        onClick={() => router.push('/admin/profil')}
+                        className="flex items-center gap-2 text-[15px] font-medium px-3 py-2.5 cursor-pointer rounded-lg"
+                      >
+                        <UserIcon className="h-4 w-4" strokeWidth={1.75} />
+                        Mon Profil
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push('/admin/settings')}
+                        className="flex items-center gap-2 text-[15px] font-medium px-3 py-2.5 cursor-pointer rounded-lg"
+                      >
+                        <Settings className="h-4 w-4" strokeWidth={1.75} />
+                        Paramètres
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator className="bg-border dark:bg-neutral-700" />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-[15px] font-medium px-3 py-2.5 cursor-pointer rounded-lg text-danger focus:text-danger"
+                  >
+                    <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                    Déconnexion
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -302,7 +344,7 @@ export default function Navbar() {
                       <span className="text-[13px] font-medium text-white dark:text-white/80">
                         Thème
                       </span>
-                      <ThemeToggle hero={true} />
+                      <ThemeToggle hero={onHero} />
                     </div>
 
                     {!user && (

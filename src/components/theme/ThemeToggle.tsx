@@ -17,9 +17,12 @@ export function ThemeToggle({ hero }: Props) {
 
   useEffect(() => setMounted(true), [])
 
+  const isDark = resolvedTheme === 'dark'
+
   const iconClass = cn(
     'h-[1.15rem] w-[1.15rem] shrink-0',
-    hero ? 'text-white/90' : 'text-neutral-600 dark:text-neutral-300'
+    // only use the 'hero' (white) style when we are actually in dark theme
+    hero && isDark ? 'text-white/90' : 'text-neutral-600 dark:text-neutral-300'
   )
 
   if (!mounted) {
@@ -28,15 +31,13 @@ export function ThemeToggle({ hero }: Props) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className={cn('rounded-full', hero ? 'text-white/80 hover:bg-white/10' : '')}
+        className={cn('rounded-full', hero && isDark ? 'text-white/80 hover:bg-white/10' : '')}
         aria-label="Thème"
       >
         <span className="h-[1.15rem] w-[1.15rem]" />
       </Button>
     )
   }
-
-  const isDark = resolvedTheme === 'dark'
 
   return (
     <Button
@@ -45,7 +46,7 @@ export function ThemeToggle({ hero }: Props) {
       size="icon-sm"
       className={cn(
         'rounded-full focus-visible:ring-2 focus-visible:ring-primary/40',
-        hero
+        hero && isDark
           ? 'text-white/90 hover:bg-white/15'
           : 'text-neutral-600 hover:bg-neutral-200/70 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
       )}

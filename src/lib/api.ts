@@ -5,6 +5,7 @@ import type {
   BackendAuthResponse,
   BackendCategorie,
   BackendObjet,
+  BackendSignalement,
   CommunauteStats,
   SpringPage,
   UploadUrlsPayload,
@@ -127,10 +128,48 @@ export async function fetchCategories(): Promise<BackendCategorie[]> {
   return res.data
 }
 
+export async function fetchCategoryById(id: number): Promise<BackendCategorie> {
+  const res = await api.get<BackendCategorie>(`/categories/${id}`)
+  return res.data
+}
+
+export async function createCategory(payload: { nom: string; description?: string }): Promise<BackendCategorie> {
+  const res = await api.post<BackendCategorie>('/admin/categories', {
+    nom: payload.nom,
+    description: payload.description,
+  })
+  return res.data
+}
+
+export async function updateCategory(id: number, payload: { nom: string; description?: string }): Promise<BackendCategorie> {
+  const res = await api.put<BackendCategorie>(`/admin/categories/${id}`, {
+    nom: payload.nom,
+    description: payload.description,
+  })
+  return res.data
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+  await api.delete(`/admin/categories/${id}`)
+}
+
 // ── Statistiques ─────────────────────────────────────────────────
 
 export async function fetchCommunauteStats(): Promise<CommunauteStats> {
   const res = await api.get<CommunauteStats>('/stats/communaute')
+  return res.data
+}
+
+export interface TimeSeriesPoint {
+  key: string
+  name: string
+  lost: number
+  found: number
+  resolved: number
+}
+
+export async function fetchStatsTimeseries(months = 6): Promise<TimeSeriesPoint[]> {
+  const res = await api.get<TimeSeriesPoint[]>('/stats/timeseries', { params: { months } })
   return res.data
 }
 
@@ -241,6 +280,39 @@ export async function uploadImages(files: File[]): Promise<string[]> {
 export async function fetchMesObjets(): Promise<Item[]> {
   const res = await api.get<BackendObjet[]>('/objets/mes-objets')
   return res.data.map((o) => backendObjetToItem(o))
+}
+
+export async function changeObjetStatus(
+  id: number,
+  status: ItemStatus
+): Promise<Item> {
+  const statut = itemStatusToBackend(status)
+  const res = await api.patch<BackendObjet>(`/objets/${id}/statut`, null, {
+    params: { statut },
+  })
+  return backendObjetToItem(res.data)
+}
+
+// ── Signalements (reports) ─────────────────────────────────────────
+
+export async function reportObjet(id: number, message?: string): Promise<BackendSignalement> {
+  const res = await api.post<BackendSignalement>(`/objets/${id}/signalement`, { message })
+  return res.data
+}
+
+export async function fetchAdminSignalements(): Promise<BackendSignalement[]> {
+  const res = await api.get<BackendSignalement[]>('/admin/signalements')
+  return res.data
+}
+
+export async function fetchAdminUnresolvedSignalements(): Promise<BackendSignalement[]> {
+  const res = await api.get<BackendSignalement[]>('/admin/signalements/non-resolus')
+  return res.data
+}
+
+export async function resolveSignalement(id: number): Promise<BackendSignalement> {
+  const res = await api.patch<BackendSignalement>(`/admin/signalements/${id}/resolve`)
+  return res.data
 }
 
 export async function fetchSearchResponse(

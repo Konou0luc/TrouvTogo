@@ -56,3 +56,17 @@ export interface CommunauteStats {
 export interface UploadUrlsPayload {
   urls: string[]
 }
+
+export interface BackendSignalement {
+  id: number
+  objetId: number
+  objetTitre: string
+  reporterId: number
+  reporterUsername: string
+  message: string | null
+  resolved: boolean
+  resolverId?: number | null
+  resolverUsername?: string | null
+  createdAt: string
+  resolvedAt?: string | null
+}

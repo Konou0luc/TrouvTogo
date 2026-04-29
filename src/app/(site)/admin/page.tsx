@@ -14,8 +14,9 @@ import {
 } from 'lucide-react'
 import AdminStatsChart from '@/components/admin/AdminStatsChart'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import AdminButton from '@/components/admin/AdminButton'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { fetchObjetsPage } from '@/lib/api'
 import StatusBadge from '@/components/annonce/StatusBadge'
 
@@ -55,14 +56,20 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-neutral-900">Vue d'ensemble</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <AdminButton variant="outline" className="gap-2">
               <Settings className="h-4 w-4" />
               Configuration
-            </Button>
-            <Button className="bg-primary hover:bg-primary-dark gap-2">
+            </AdminButton>
+            <Link href="/admin/categories">
+              <AdminButton variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Catégories
+              </AdminButton>
+            </Link>
+            <AdminButton className="bg-primary hover:bg-primary-dark gap-2">
               <TrendingUp className="h-4 w-4" />
               Rapport complet
-            </Button>
+            </AdminButton>
           </div>
         </div>
 
@@ -101,7 +108,7 @@ export default function AdminPage() {
             <Card className="border border-neutral-200">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Dernières annonces à modérer</CardTitle>
-                <Button variant="ghost" size="sm" className="text-primary font-bold">Voir tout</Button>
+                <AdminButton variant="ghost" size="sm" className="text-primary font-bold">Voir tout</AdminButton>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y">
@@ -119,12 +126,12 @@ export default function AdminPage() {
                       <div className="flex items-center gap-3">
                         <StatusBadge status={item.status} />
                         <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                          <AdminButton size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                             <CheckCircle2 className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-danger hover:text-danger hover:bg-danger/5">
+                          </AdminButton>
+                          <AdminButton size="icon" variant="ghost" className="h-8 w-8 text-danger hover:text-danger hover:bg-danger/5">
                             <AlertTriangle className="h-4 w-4" />
-                          </Button>
+                          </AdminButton>
                         </div>
                       </div>
                     </div>
@@ -179,9 +186,9 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
-                <Button className="w-full mt-6 bg-white/10 hover:bg-white/20 border-none text-xs font-bold">
+                <AdminButton className="w-full mt-6 bg-white/10 hover:bg-white/20 border-none text-xs font-bold">
                   Maintenance
-                </Button>
+                </AdminButton>
               </CardContent>
             </Card>
           </div>
