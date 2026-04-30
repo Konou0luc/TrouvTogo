@@ -394,7 +394,7 @@ export default function AnnoncesPage() {
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.12] via-transparent to-secondary/[0.08]" />
-              <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 backdrop-blur-sm">
+              <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-border bg-card/90 px-4 py-3 backdrop-blur-sm">
                 <p className="text-xs font-medium text-muted-foreground">Liste & carte</p>
                 <p className="mt-0.5 font-heading text-sm font-medium text-foreground">Même base de données, deux façons de lire la ville.</p>
               </div>
@@ -505,7 +505,7 @@ export default function AnnoncesPage() {
                 <Button
                   type="button"
                   onClick={handleGeolocate}
-                  className="h-10 rounded-full border border-white/80 bg-white/95 px-4 text-sm font-medium text-neutral-800 backdrop-blur-sm hover:bg-white"
+                  className="h-10 rounded-full border border-border bg-card/95 px-4 text-sm font-medium text-foreground backdrop-blur-sm hover:bg-card"
                 >
                   <MapPin className="mr-2 h-4 w-4 text-primary" strokeWidth={1.75} />
                   Ma position

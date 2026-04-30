@@ -46,7 +46,7 @@ export default function MatchesPage() {
   ]
 
   return (
-    <div className="bg-neutral-50 min-h-screen pb-20">
+    <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>

@@ -73,7 +73,7 @@ export default function ProfilePage() {
   if (!user) return null
 
   return (
-    <div className="bg-neutral-50 min-h-screen pb-20">
+    <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-10">
         {/* Back Button */}
         <Link href="/annonces" className="inline-flex items-center text-sm text-neutral-500 hover:text-primary mb-8 transition-colors">
@@ -156,7 +156,7 @@ export default function ProfilePage() {
             <Card key={i} className="border border-neutral-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className={`h-12 w-12 rounded-xl bg-neutral-50 ${stat.color} flex items-center justify-center`}>
+                  <div className={`h-12 w-12 rounded-xl bg-card ${stat.color} flex items-center justify-center`}>
                     <stat.icon className="h-6 w-6" />
                   </div>
                   <div>

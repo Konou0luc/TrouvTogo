@@ -171,7 +171,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
             </div>
           ))}
         </div>
-        <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
           <div 
             className="h-full bg-primary transition-all duration-300" 
             style={{ width: `${((step - 1) / 3) * 100}%` }}
@@ -237,7 +237,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   <Input 
                     {...register('title')}
                     placeholder="Ex: iPhone 13 Pro bleu écran fissuré" 
-                    className="h-12 bg-neutral-50 border-neutral-200"
+                    className="h-12 bg-card border-border text-foreground placeholder:text-muted-foreground"
                   />
                   {errors.title && <p className="text-xs text-danger">{errors.title.message}</p>}
                 </div>
@@ -247,7 +247,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   <Textarea 
                     {...register('description')}
                     placeholder="Détaillez les signes distinctifs (marque, couleur, coque, fond d'écran...)"
-                    className="min-h-[150px] bg-neutral-50 border-neutral-200"
+                    className="min-h-[150px] bg-card border-border text-foreground placeholder:text-muted-foreground"
                   />
                   <div className="flex justify-between text-[10px] text-neutral-400">
                     <span>{currentDesc.length} / 2000 caractères</span>
@@ -261,7 +261,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                     <Input 
                       {...register('reward')}
                       placeholder="Ex: 5000 FCFA, Un grand merci..." 
-                      className="h-12 bg-neutral-50 border-neutral-200"
+                      className="h-12 bg-card border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 )}
@@ -285,9 +285,9 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                       </div>
                     ))}
                     {images.length < 5 && (
-                      <label className="aspect-square rounded-xl border-2 border-dashed border-neutral-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-neutral-50 transition-colors">
-                        <Upload className="h-6 w-6 text-neutral-400" />
-                        <span className="text-[10px] font-medium text-neutral-500">Ajouter</span>
+                      <label className="aspect-square rounded-xl border-2 border-dashed border-border bg-card flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted transition-colors">
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-[10px] font-medium text-muted-foreground">Ajouter</span>
                         <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
                       </label>
                     )}
@@ -311,7 +311,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   <Input 
                     {...register('district')}
                     placeholder="Ex: Bè, Agoè, Adidogomé..." 
-                    className="h-12 bg-neutral-50 border-neutral-200"
+                    className="h-12 bg-card border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div className="space-y-2">
@@ -321,7 +321,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                     <Input 
                       {...register('date')}
                       type="date"
-                      className="pl-10 h-12 bg-neutral-50 border-neutral-200"
+                      className="pl-10 h-12 bg-card border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
 
               <div className="space-y-2 mb-8">
                 <label className="text-sm font-bold">Position précise sur la carte *</label>
-                <div className="h-[400px] rounded-2xl overflow-hidden border-2 border-neutral-200 relative">
+                <div className="h-[400px] rounded-2xl overflow-hidden border-2 border-border relative">
                   <LocationPicker 
                     initialLocation={{ lat: currentLat, lng: currentLng }} 
                     onChange={(lat, lng) => {
@@ -346,7 +346,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   <Input 
                     {...register('depositLocation')}
                     placeholder="Ex: Commissariat de Bè, Je l'ai avec moi..." 
-                    className="h-12 bg-neutral-50 border-neutral-200"
+                    className="h-12 bg-card border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
               )}
@@ -365,7 +365,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
               <p className="text-neutral-500 text-sm">Veuillez relire vos informations avant de publier.</p>
             </div>
 
-            <Card className="space-y-6 border-neutral-200 bg-white p-6">
+            <Card className="space-y-6 border-border bg-card p-6">
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div>
@@ -428,8 +428,8 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="h-12 rounded-xl bg-secondary px-12 font-bold text-lg hover:bg-secondary-dark"
               disabled={isSubmitting}
             >
@@ -439,7 +439,7 @@ export default function DeclarerForm({ type }: { type: ItemType }) {
                   Publication...
                 </>
               ) : (
-                'Publier l\'annonce'
+                "Publier l'annonce"
               )}
             </Button>
           )}

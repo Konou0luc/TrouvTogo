@@ -105,7 +105,7 @@ export function AuthVisualPanel({ slides = DEFAULT_SLIDES }: Props) {
                 aria-label={`Slide ${i + 1}`}
                 onClick={() => setIndex(i)}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === index ? 'w-8 bg-white' : 'w-2 bg-white/35 hover:bg-white/55'
+                  i === index ? 'w-8 bg-card' : 'w-2 bg-card/35 hover:bg-card/55'
                 }`}
               />
             ))}
@@ -114,7 +114,7 @@ export function AuthVisualPanel({ slides = DEFAULT_SLIDES }: Props) {
             <button
               type="button"
               onClick={() => go(-1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/25 bg-card/10 text-white backdrop-blur-md transition hover:bg-card/20"
               aria-label="Image précédente"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -122,7 +122,7 @@ export function AuthVisualPanel({ slides = DEFAULT_SLIDES }: Props) {
             <button
               type="button"
               onClick={() => go(1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/25 bg-card/10 text-white backdrop-blur-md transition hover:bg-card/20"
               aria-label="Image suivante"
             >
               <ChevronRight className="h-5 w-5" />

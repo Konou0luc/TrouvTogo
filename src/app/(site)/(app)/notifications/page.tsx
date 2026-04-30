@@ -34,12 +34,12 @@ export default function NotificationsPage() {
       case 'NEW_MATCH_HIGH': return { icon: Zap, color: 'text-accent', bg: 'bg-accent-light' }
       case 'NEW_MESSAGE': return { icon: MessageSquare, color: 'text-primary', bg: 'bg-primary-light' }
       case 'ITEM_RESOLVED': return { icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary-light' }
-      default: return { icon: Bell, color: 'text-neutral-400', bg: 'bg-neutral-100' }
+      default: return { icon: Bell, color: 'text-neutral-400', bg: 'bg-muted' }
     }
   }
 
   return (
-    <div className="bg-neutral-50 min-h-screen pb-20">
+    <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-10 max-w-3xl">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-3xl font-bold text-neutral-900">Notifications</h1>
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
             })
           ) : (
             <div className="py-20 text-center">
-              <div className="h-20 w-20 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-6">
+              <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
                 <Bell className="h-10 w-10 text-neutral-300" />
               </div>
               <h3 className="text-lg font-bold text-neutral-900">Aucune notification</h3>

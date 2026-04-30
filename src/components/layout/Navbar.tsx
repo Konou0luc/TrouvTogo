@@ -288,7 +288,7 @@ export default function Navbar() {
               onClick={() => setIsOpen((o) => !o)}
               className={cn(
                 'rounded-full',
-                'border-white/45 bg-white/10 text-white hover:bg-white/20 dark:border-neutral-400/50 dark:bg-black/15 dark:text-neutral-700 dark:hover:bg-black/25'
+                'border-border/45 bg-card/10 text-white hover:bg-card/20 dark:border-neutral-400/50 dark:bg-black/15 dark:text-neutral-700 dark:hover:bg-black/25'
               )}
             >
               <Menu className="h-4 w-4" strokeWidth={1.75} />
@@ -309,11 +309,11 @@ export default function Navbar() {
                   aria-label="Navigation"
                   className="pointer-events-auto absolute inset-x-3 top-[calc(4rem+env(safe-area-inset-top,0px))] bottom-[max(0.5rem,env(safe-area-inset-bottom,0px))] flex flex-col rounded-[1.75rem] border border-primary/70 bg-primary text-white p-4 shadow-[0_28px_90px_-16px_rgba(15,23,42,0.4)] dark:border-white/[0.15] dark:bg-neutral-900 dark:text-foreground sm:p-5"
                 >
-                  <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-white/30 pb-3 dark:border-white/20">
+                  <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-border/30 pb-3 dark:border-border/20">
                     <p className="font-heading text-lg font-medium tracking-tight text-white dark:text-white">
                       Trouv<span className="text-white/90 dark:text-white/90">Togo</span>
                     </p>
-                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 dark:bg-white/15 dark:text-white/70">
+                    <span className="rounded-full bg-card/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 dark:bg-card/15 dark:text-white/70">
                       Menu
                     </span>
                   </div>
@@ -329,8 +329,8 @@ export default function Navbar() {
                           className={cn(
                             'rounded-2xl px-3 py-2.5 text-[15px] font-medium transition-colors sm:py-3',
                             active
-                              ? 'bg-white/25 text-white dark:bg-white/20 dark:text-white'
-                              : 'text-white/90 hover:bg-white/15 dark:text-white/80 dark:hover:bg-white/[0.12]'
+                                ? 'bg-card/25 text-white dark:bg-card/20 dark:text-white'
+                                : 'text-white/90 hover:bg-card/15 dark:text-white/80 dark:hover:bg-card/[0.12]'
                           )}
                         >
                           {link.name}
@@ -339,11 +339,9 @@ export default function Navbar() {
                     })}
                   </nav>
 
-                  <div className="mt-3 shrink-0 space-y-3 border-t border-white/30 pt-4 dark:border-white/20">
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/40 bg-white/15 px-3 py-2.5 dark:border-white/20 dark:bg-white/[0.08] sm:px-4 sm:py-3">
-                      <span className="text-[13px] font-medium text-white dark:text-white/80">
-                        Thème
-                      </span>
+                  <div className="mt-3 shrink-0 space-y-3 border-t border-border/30 pt-4 dark:border-border/20">
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/40 bg-card/15 px-3 py-2.5 dark:border-border/20 dark:bg-card/[0.08] sm:px-4 sm:py-3">
+                      <span className="text-[13px] font-medium text-white dark:text-white/80">Thème</span>
                       <ThemeToggle hero={onHero} />
                     </div>
 
@@ -354,17 +352,19 @@ export default function Navbar() {
                             Voir les annonces
                           </Button>
                         </Link>
+
                         <Link
                           href="/login"
                           onClick={() => setIsOpen(false)}
-                          className="block rounded-2xl border border-white/40 bg-white/20 py-2.5 text-center text-[15px] font-medium text-white dark:border-white/25 dark:bg-white/[0.12] dark:text-white sm:py-3"
+                          className="block rounded-2xl border border-border/40 bg-card/20 py-2.5 text-center text-[15px] font-medium text-white dark:border-border/25 dark:bg-card/[0.12] dark:text-white sm:py-3"
                         >
                           Connexion
                         </Link>
+
                         <Link
                           href="/inscription"
                           onClick={() => setIsOpen(false)}
-                          className="block rounded-2xl border border-dashed border-white/40 py-2.5 text-center text-[15px] font-medium text-white dark:border-white/40 dark:text-white sm:py-3"
+                          className="block rounded-2xl border border-dashed border-border/40 py-2.5 text-center text-[15px] font-medium text-white dark:border-border/40 dark:text-white sm:py-3"
                         >
                           Créer un compte
                         </Link>

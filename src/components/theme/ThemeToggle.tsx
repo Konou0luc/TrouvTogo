@@ -31,7 +31,7 @@ export function ThemeToggle({ hero }: Props) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className={cn('rounded-full', hero && isDark ? 'text-white/80 hover:bg-white/10' : '')}
+        className={cn('rounded-full', hero && isDark ? 'text-white/80 hover:bg-card/10' : '')}
         aria-label="Thème"
       >
         <span className="h-[1.15rem] w-[1.15rem]" />
@@ -47,7 +47,7 @@ export function ThemeToggle({ hero }: Props) {
       className={cn(
         'rounded-full focus-visible:ring-2 focus-visible:ring-primary/40',
         hero && isDark
-          ? 'text-white/90 hover:bg-white/15'
+          ? 'text-white/90 hover:bg-card/15'
           : 'text-neutral-600 hover:bg-neutral-200/70 dark:text-neutral-300 dark:hover:bg-neutral-800/80'
       )}
       aria-label={isDark ? 'Passer au thème clair' : 'Passer au thème sombre'}

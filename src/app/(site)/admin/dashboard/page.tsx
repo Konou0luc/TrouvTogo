@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-neutral-200 dark:border-neutral-800">
+          <Card className="border-border dark:border-neutral-800">
             <CardContent className="p-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-neutral-400 uppercase font-bold">Annonces actives</p>
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-neutral-200 dark:border-neutral-800">
+          <Card className="border-border dark:border-neutral-800">
             <CardContent className="p-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-neutral-400 uppercase font-bold">Clôturées</p>
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-neutral-200 dark:border-neutral-800">
+          <Card className="border-border dark:border-neutral-800">
             <CardContent className="p-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-neutral-400 uppercase font-bold">Matches en cours</p>
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-neutral-200 dark:border-neutral-800">
+          <Card className="border-border dark:border-neutral-800">
             <CardContent className="p-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-neutral-400 uppercase font-bold">Messages non lus</p>
@@ -157,7 +157,7 @@ export default function AdminDashboardPage() {
                   {loadingStats ? <Skeleton className="h-6 w-10" /> : new Intl.NumberFormat('fr-FR').format(stats.unreadMessages)}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-xl bg-muted dark:bg-muted flex items-center justify-center">
                 <MessageSquare className="h-5 w-5 text-neutral-600 dark:text-neutral-300" />
               </div>
             </CardContent>
@@ -187,9 +187,9 @@ export default function AdminDashboardPage() {
               <CardContent className="p-0">
                 <div className="divide-y">
                   {previewItems.map((item) => (
-                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted dark:hover:bg-muted transition-colors">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-10 w-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                        <div className="h-10 w-10 rounded-lg bg-muted dark:bg-muted flex items-center justify-center shrink-0">
                           <Search className="h-5 w-5 text-neutral-400 dark:text-neutral-300" />
                         </div>
                         <div className="min-w-0">
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
                             </AdminButton>
                           </Link>
                           <Link href={`/messages?itemId=${item.id}`}>
-                            <AdminButton size="icon" variant="ghost" className="h-8 w-8 text-neutral-500 hover:bg-neutral-50">
+                            <AdminButton size="icon" variant="ghost" className="h-8 w-8 text-neutral-500 hover:bg-muted">
                               <MessageSquare className="h-4 w-4" />
                             </AdminButton>
                           </Link>
@@ -225,7 +225,7 @@ export default function AdminDashboardPage() {
               <CardContent className="p-6">
                 <h4 className="text-sm font-bold text-neutral-500">Profil Admin</h4>
                 <div className="mt-4 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-xl font-bold text-neutral-700 dark:text-white">A</div>
+                  <div className="h-12 w-12 rounded-full bg-muted dark:bg-muted flex items-center justify-center text-xl font-bold text-neutral-700 dark:text-white">A</div>
                   <div>
                     <p className="font-bold text-neutral-900 dark:text-white">{user?.name ?? 'Admin'}</p>
                     <p className="text-xs text-neutral-400">{user?.email ?? 'admin@example.com'}</p>

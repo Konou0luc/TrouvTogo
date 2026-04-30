@@ -233,9 +233,9 @@ export default function Home() {
           </motion.div>
 
           {/* Stats intégrées */}
-          <div className="relative z-20 mx-auto mt-12 w-full min-w-0 max-w-[88rem] sm:mt-14">
-            <div className="overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-none backdrop-blur-md dark:border-white/15 dark:bg-black/25">
-              <div className="grid divide-y divide-white/15 md:grid-cols-3 md:divide-x md:divide-y-0 dark:divide-white/10">
+            <div className="relative z-20 mx-auto mt-12 w-full min-w-0 max-w-[88rem] sm:mt-14">
+            <div className="overflow-hidden rounded-2xl border border-border/20 bg-card/10 shadow-none backdrop-blur-md dark:border-border/15 dark:bg-black/25">
+              <div className="grid divide-y divide-border/15 md:grid-cols-3 md:divide-x md:divide-y-0 dark:divide-border/10">
                 {[
                   { label: 'Objets signalés', value: isLoading ? null : totalSignalés, icon: Search },
                   { label: 'Restitutions', value: isLoading ? null : totalRestitutions, icon: CheckCircle },
@@ -255,7 +255,7 @@ export default function Home() {
                     transition={{ delay: i * 0.06, duration: 0.4 }}
                   >
                     <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-card/20">
                         <stat.icon className="h-5 w-5 text-white" strokeWidth={1.75} />
                       </div>
                       <span
@@ -266,7 +266,7 @@ export default function Home() {
                       </span>
                     </div>
                     {isLoading ? (
-                      <div className="h-9 w-20 animate-pulse rounded-md bg-white/20 dark:bg-white/10" />
+                      <div className="h-9 w-20 animate-pulse rounded-md bg-card/20 dark:bg-card/10" />
                     ) : stat.value != null ? (
                       <span className="font-heading text-3xl font-semibold tabular-nums tracking-tight text-white">
                         {stat.value.toLocaleString('fr-FR')}
@@ -390,7 +390,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="rounded-xl border border-white/20 bg-white/10 p-8 backdrop-blur-[2px] dark:border-white/10 dark:bg-[#1a1f26]"
+                className="rounded-xl border border-border/20 bg-card/10 p-8 backdrop-blur-[2px] dark:border-border/10 dark:bg-[#1a1f26]"
               >
                 <feature.icon
                   className="mb-5 h-5 w-5 text-white dark:text-primary-light"
@@ -483,7 +483,7 @@ export default function Home() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.05 }}
-                    className="rounded-2xl border border-neutral-200/50 bg-white px-5 py-6 text-center shadow-none transition-colors hover:border-primary/35 dark:border-neutral-700/80 dark:bg-card dark:hover:border-neutral-600"
+                    className="rounded-2xl border border-neutral-200/50 bg-card px-5 py-6 text-center shadow-none transition-colors hover:border-primary/35 dark:border-neutral-700/80 dark:bg-card dark:hover:border-neutral-600"
                   >
                     <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-primary/20">
                       <CatIcon className="h-6 w-6" strokeWidth={1.5} />
@@ -514,7 +514,7 @@ export default function Home() {
             <Button
               size="lg"
               onClick={handleCreateAccount}
-              className="h-12 min-w-[200px] rounded-full border border-white/30 bg-white px-8 text-[15px] font-medium text-primary hover:bg-neutral-100"
+              className="h-12 min-w-[200px] rounded-full border border-border/30 bg-card px-8 text-[15px] font-medium text-primary hover:bg-neutral-100"
             >
               {user ? 'Accéder au tableau de bord' : 'Créer un compte'}
             </Button>
@@ -522,7 +522,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 min-w-[200px] rounded-full border-white/50 bg-transparent px-8 text-[15px] font-medium text-white hover:bg-white/10"
+                className="h-12 min-w-[200px] rounded-full border-border/50 bg-transparent px-8 text-[15px] font-medium text-white hover:bg-card/10"
               >
                 Parcourir les annonces
               </Button>

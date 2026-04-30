@@ -44,7 +44,7 @@ export default function AdminPage() {
   }, [])
 
   return (
-    <div className="bg-neutral-50 min-h-screen">
+    <div className="bg-background min-h-screen">
       {/* Sidebar Layout could be added, but for now a simple container */}
       <div className="container mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
@@ -76,7 +76,7 @@ export default function AdminPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {stats.map((s, i) => (
-            <Card key={i} className="border border-neutral-200">
+            <Card key={i} className="border border-border">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
@@ -113,9 +113,9 @@ export default function AdminPage() {
               <CardContent className="p-0">
                 <div className="divide-y">
                   {previewItems.map((item) => (
-                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
+                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted transition-colors">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-10 w-10 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
+                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                           <Search className="h-5 w-5 text-neutral-400" />
                         </div>
                         <div className="min-w-0">
@@ -186,7 +186,7 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
-                <AdminButton className="w-full mt-6 bg-white/10 hover:bg-white/20 border-none text-xs font-bold">
+                <AdminButton className="w-full mt-6 bg-card/10 hover:bg-card/20 border-none text-xs font-bold">
                   Maintenance
                 </AdminButton>
               </CardContent>

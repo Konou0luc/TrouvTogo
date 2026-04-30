@@ -32,7 +32,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 const fieldIcon =
   'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 dark:text-neutral-500'
 const inputClass =
-  'h-10 rounded-xl border-neutral-200 bg-neutral-50/90 pl-10 text-sm text-neutral-900 transition focus:bg-white sm:h-11 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-500 focus:dark:bg-neutral-900'
+  'h-10 rounded-xl border-border bg-card/90 dark:bg-card pl-10 text-sm text-foreground placeholder:text-muted-foreground transition focus:bg-card sm:h-11'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -72,7 +72,7 @@ export default function RegisterPage() {
 
   return (
     <AuthPageShell>
-      <div className="rounded-2xl border border-neutral-200 bg-white p-5 backdrop-blur-xl sm:p-6 lg:p-7 dark:border-neutral-800 dark:bg-black">
+      <div className="rounded-2xl border border-neutral-200 bg-card p-5 backdrop-blur-xl sm:p-6 lg:p-7">
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}

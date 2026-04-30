@@ -7,7 +7,7 @@ import L from 'leaflet'
 
 const markerIcon = L.divIcon({
   className: '',
-  html: `<div style="width:28px;height:28px;background:#185FA5;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;"></div>`,
+  html: `<div style="width:28px;height:28px;background:var(--primary);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--card-foreground);"></div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
 })
@@ -72,7 +72,7 @@ export default function LocationPicker({ initialLocation, onChange }: LocationPi
       </MapContainer>
       {!position && (
         <div className="absolute inset-0 z-[1000] bg-black/10 flex items-center justify-center pointer-events-none">
-          <div className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-bold text-primary animate-bounce">
+          <div className="rounded-full border border-neutral-200 bg-card px-4 py-2 text-sm font-bold text-primary animate-bounce">
             Cliquez sur la carte pour choisir le lieu
           </div>
         </div>

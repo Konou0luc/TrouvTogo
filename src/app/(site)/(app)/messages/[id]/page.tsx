@@ -56,7 +56,7 @@ export default function ConversationPage() {
   return (
     <div className="bg-card h-[calc(100vh-64px)] flex overflow-hidden">
       {/* Sidebar: hidden on mobile when viewing a thread */}
-      <div className="hidden md:flex w-80 lg:w-96 border-r border-neutral-100 flex-col shrink-0">
+      <div className="hidden md:flex w-80 lg:w-96 border-r border-border flex-col shrink-0">
         <div className="p-6 border-b">
           <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
         </div>
@@ -66,7 +66,7 @@ export default function ConversationPage() {
       </div>
 
       {/* Main: Message Thread */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-50/30">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-muted/30">
         {/* Thread Header */}
         <div className="bg-card border-b px-4 py-3 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3 min-w-0">

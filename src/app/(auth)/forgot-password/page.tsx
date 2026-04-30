@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
   if (isSubmitted) {
     return (
       <AuthPageShell>
-        <div className="rounded-2xl border border-neutral-200 bg-white p-10 backdrop-blur-xl sm:p-12 lg:p-14 dark:border-neutral-800 dark:bg-black">
+        <div className="rounded-2xl border border-border bg-card p-10 backdrop-blur-xl sm:p-12 lg:p-14 dark:border-neutral-800 dark:bg-card">
           <div className="flex justify-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <CheckCircle2 className="h-10 w-10" />
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthPageShell>
-      <div className="rounded-2xl border border-neutral-200 bg-white p-10 backdrop-blur-xl sm:p-12 lg:p-14 dark:border-neutral-800 dark:bg-black">
+      <div className="rounded-2xl border border-neutral-200 bg-card p-10 backdrop-blur-xl sm:p-12 lg:p-14">
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 autoComplete="email"
                 placeholder="vous@exemple.com"
-                className="h-14 rounded-2xl border-neutral-200 bg-neutral-50/90 pl-12 text-base text-neutral-900 transition focus:bg-white dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-500 focus:dark:bg-neutral-900"
+                className="h-14 rounded-2xl border-border bg-card/90 dark:bg-card pl-12 text-base text-foreground placeholder:text-muted-foreground transition focus:bg-card"
                 disabled={isLoading}
               />
             </div>

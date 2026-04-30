@@ -50,21 +50,11 @@ export function HomeStoryCarousel() {
     setIndex((i) => (i + d + SLIDES.length) % SLIDES.length)
 
   return (
-    <section
-      className={cn(
-        'py-20 lg:py-24',
-        isDark ? 'bg-[#101214]' : 'bg-[#f8f7f4]'
-      )}
-    >
+    <section className={cn('py-20 lg:py-24', 'bg-background')}>
       <div className="mx-auto max-w-[88rem] px-4 sm:px-6 lg:px-10">
         <div className="mb-12 max-w-2xl">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Terrain</p>
-          <h2
-            className={cn(
-              'display-heading mt-3 text-3xl sm:text-4xl',
-              isDark ? 'text-[#f0efe9]' : 'text-[#1c1b18]'
-            )}
-          >
+            <h2 className={cn('display-heading mt-3 text-3xl sm:text-4xl text-foreground')}>
             Le service en contexte réel
           </h2>
           <p
@@ -116,12 +106,7 @@ export function HomeStoryCarousel() {
                     {SLIDES[index].caption}
                   </motion.p>
                 </AnimatePresence>
-                <p
-                  className={cn(
-                    'mt-6 text-sm',
-                    isDark ? 'text-[#a8a59a]' : 'text-[#5f5e58]'
-                  )}
-                >
+                <p className="mt-6 text-sm text-muted-foreground">
                   Images d’illustration — votre parcours reste 100 % gratuit et centré sur la confiance.
                 </p>
               </div>
@@ -149,12 +134,7 @@ export function HomeStoryCarousel() {
                   <button
                     type="button"
                     onClick={() => go(-1)}
-                    className={cn(
-                      'inline-flex h-10 w-10 items-center justify-center rounded-full border transition hover:border-primary/40 hover:text-primary',
-                      isDark
-                        ? 'border-neutral-600 bg-neutral-900 text-[#f0efe9]'
-                        : 'border-neutral-200/60 bg-white text-[#1c1b18]'
-                    )}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-card-foreground transition hover:border-primary/40 hover:text-primary"
                     aria-label="Précédent"
                   >
                     <ChevronLeft className="h-5 w-5" />
@@ -162,12 +142,7 @@ export function HomeStoryCarousel() {
                   <button
                     type="button"
                     onClick={() => go(1)}
-                    className={cn(
-                      'inline-flex h-10 w-10 items-center justify-center rounded-full border transition hover:border-primary/40 hover:text-primary',
-                      isDark
-                        ? 'border-neutral-600 bg-neutral-900 text-[#f0efe9]'
-                        : 'border-neutral-200/60 bg-white text-[#1c1b18]'
-                    )}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-card-foreground transition hover:border-primary/40 hover:text-primary"
                     aria-label="Suivant"
                   >
                     <ChevronRight className="h-5 w-5" />

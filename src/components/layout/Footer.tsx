@@ -28,10 +28,10 @@ export default function Footer() {
             <div className="flex gap-4">
               {['Facebook', 'Twitter', 'Instagram'].map((social) => (
                 <a 
-                  key={social} 
-                  href="#" 
-                  className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-white/5"
-                >
+                    key={social} 
+                    href="#" 
+                    className="h-12 w-12 rounded-2xl bg-card/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-border/5"
+                  >
                   <Globe className="h-5 w-5" />
                 </a>
               ))}
@@ -82,7 +82,7 @@ export default function Footer() {
               <h3 className="text-white font-black uppercase tracking-widest text-xs mb-8">Contact</h3>
               <ul className="space-y-6">
                 <li className="flex items-start gap-4 text-neutral-400 group">
-                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-card/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
@@ -91,7 +91,7 @@ export default function Footer() {
                   </div>
                 </li>
                 <li className="flex items-start gap-4 text-neutral-400 group">
-                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-card/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Phone className="h-5 w-5" />
                   </div>
                   <div>
@@ -105,7 +105,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="pt-12 border-t border-border/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-xs font-black text-emerald-500 uppercase tracking-widest">
               <ShieldCheck className="h-4 w-4" />

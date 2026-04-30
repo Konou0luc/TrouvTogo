@@ -25,12 +25,12 @@ export default function ConversationList({ conversations }: ConversationListProp
             <Link 
               key={conv.id} 
               href={`/messages/${conv.id}`}
-              className={`flex items-center gap-4 p-4 hover:bg-neutral-50 transition-colors ${
+              className={`flex items-center gap-4 p-4 hover:bg-muted transition-colors ${
                 isActive ? 'bg-primary-light/30 border-r-4 border-r-primary' : ''
               }`}
             >
               <div className="relative">
-                <Avatar className="h-12 w-12 border border-neutral-200">
+                <Avatar className="h-12 w-12 border border-border">
                   <AvatarImage src={conv.otherUser.avatar || ''} />
                   <AvatarFallback className="bg-primary-light text-primary font-bold">
                     {conv.otherUser.name.charAt(0)}
